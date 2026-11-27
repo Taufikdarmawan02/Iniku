@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kebun Nusantara - Pusat Bibit Tanaman Unggul</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome untuk Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        botanical: {
+                            50: '#f2f8f4',
+                            100: '#e0efe5',
+                            200: '#c2dfcd',
+                            300: '#96c7ab',
+                            400: '#64a984',
+                            500: '#408c65',
+                            600: '#2e704f',
+                            700: '#255940',
+                            800: '#1f4735',
+                            900: '#1a3b2c',
+                        },
+                        terracotta: {
+                            50: '#fdf6f3',
+                            100: '#fbeae3',
+                            500: '#d96b43',
+                            600: '#c2542e',
+                            700: '#a14122',
+                        },
+                        cream: '#faf9f5'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Kustomisasi scrollbar halus */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #96c7ab;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #408c65;
+        }
+        .fade-in {
+            animation: fadeIn 0.25s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-cream text-stone-800 antialiased selection:bg-botanical-200 selection:text-botanical-900 min-h-screen flex flex-col">
+
+    <!-- TOP NAVIGATION BAR: PENGALIH AKTOR (PEMBELI VS ADMIN) -->
+    <div class="bg-botanical-900 text-white sticky top-0 z-50 shadow-md border-b border-botanical-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2 text-xs sm:text-sm font-medium text-botanical-200">
+                <span class="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Mode Simulasi Sistem Terintegrasi</span>
+            </div>
+            
+            <!-- Switch Mode Buttons -->
+            <div class="flex bg-botanical-950/70 p-1 rounded-xl border border-botanical-700/60">
+                <button id="btn-mode-buyer" onclick="switchRole('buyer')" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 bg-botanical-500 text-white shadow-sm">
+                    <i class="fa-solid fa-store"></i>
+                    <span>Halaman Pembeli</span>
+                </button>
+                <button id="btn-mode-admin" onclick="switchRole('admin')" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 text-botanical-200 hover:text-white">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Halaman Admin Toko</span>
+                    <span id="admin-badge-count" class="bg-terracotta-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">1</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[100] flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 1: HALAMAN PEMBELI (STOREFRONT)                                  -->
+    <!-- ===================================================================== -->
+    <main id="view-buyer" class="flex-1 flex flex-col fade-in">
+        <!-- Storefront Header -->
+        <header class="bg-white border-b border-stone-200/80 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
+                <!-- Brand Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-botanical-500 to-botanical-700 text-white flex items-center justify-center text-xl shadow-md shadow-botanical-600/20">
+                        <i class="fa-solid fa-seedling"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-display font-extrabold text-lg sm:text-xl text-botanical-900 leading-tight">Kebun Nusantara</h1>
+                        <p class="text-xs text-stone-500 hidden sm:block">Pusat Bibit Tanaman Unggul & Bersertifikat</p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons: Cek Pesanan & Keranjang -->
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <button onclick="openTrackOrderModal()" class="px-3.5 py-2.5 rounded-xl border border-stone-200 hover:border-botanical-400 bg-stone-50 hover:bg-botanical-50 text-stone-700 hover:text-botanical-800 text-xs sm:text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-truck-fast text-botanical-600"></i>
+                        <span>Cek Pesanan</span>
+                    </button>
+
+                    <button onclick="toggleCartDrawer(true)" class="relative px-4 py-2.5 rounded-xl bg-botanical-600 hover:bg-botanical-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-botanical-600/20 transition flex items-center gap-2">
+                        <i class="fa-solid fa-basket-shopping"></i>
+                        <span class="hidden sm:inline">Keranjang</span>
+                        <span id="cart-count-badge" class="bg-terracotta-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Banner Ringkas -->
+        <section class="bg-gradient-to-r from-botanical-800 via-botanical-700 to-botanical-600 text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="max-w-xl space-y-2.5 text-center md:text-left">
+                    <span class="inline-block px-3 py-1 rounded-full bg-white/15 text-botanical-100 text-xs font-semibold tracking-wide backdrop-blur-sm">
+                        <i class="fa-brands fa-whatsapp mr-1 text-emerald-300"></i> Pesan Mudah & Update Otomatis via WhatsApp
+                    </span>
+                    <h2 class="font-display text-2xl sm:text-3xl font-extrabold leading-snug">
+                        Hijaukan Lahan Anda dengan Bibit Pilihan Berkualitas
+                    </h2>
+                    <p class="text-sm text-botanical-100 leading-relaxed">
+                        Stok bibit diperbarui secara real-time langsung dari kebun pembibitan kami. Pilih bibit, checkout via WhatsApp, dan pantau pengiriman otomatis.
+                    </p>
+                </div>
+                <div class="flex gap-3 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-xs sm:text-sm">
+                    <div class="text-center px-3 border-r border-white/15">
+                        <div class="font-display font-bold text-xl text-emerald-300">100%</div>
+                        <div class="text-botanical-100">Bibit Valid</div>
+                    </div>
+                    <div class="text-center px-3 border-r border-white/15">
+                        <div class="font-display font-bold text-xl text-emerald-300">Garansi</div>
+                        <div class="text-botanical-100">Hidup Sampai Tujuan</div>
+                    </div>
+                    <div class="text-center px-3">
+                        <div class="font-display font-bold text-xl text-emerald-300">Auto WA</div>
+                        <div class="text-botanical-100">Info Resi & Status</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filter & Search Bar -->
+        <section class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-6 pb-2">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-stone-200/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+                <!-- Category Pills -->
+                <div id="category-filters" class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+                    <!-- Diisi lewat JS -->
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative w-full md:w-72">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-sm"></i>
+                    <input type="text" id="search-input" oninput="renderCatalog()" placeholder="Cari nama bibit..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-botanical-500 focus:ring-2 focus:ring-botanical-500/20 transition">
+                </div>
+            </div>
+        </section>
+
+        <!-- Product Grid -->
+        <section class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex-1">
+            <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <!-- Kartu produk bibit diisi lewat JS -->
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-white border-t border-stone-200 mt-10 py-6 text-center text-xs text-stone-500">
+            <p>&copy; 2026 Kebun Nusantara - Sistem Manajemen Stok & Penjualan Bibit Tanaman Terintegrasi WhatsApp.</p>
+        </footer>
+    </main>
+
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 2: HALAMAN ADMIN (DASHBOARD KELOLA TOKO)                         -->
+    <!-- ===================================================================== -->
+    <main id="view-admin" class="hidden flex-1 flex-col fade-in max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+        
+        <!-- Admin Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+                <h1 class="font-display text-2xl font-extrabold text-stone-900">Dashboard Kelola Toko Bibit</h1>
+                <p class="text-sm text-stone-500">Kelola pesanan masuk, sinkronisasi stok otomatis, dan notifikasi WhatsApp pembeli.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openAddProductModal()" class="px-4 py-2.5 rounded-xl bg-botanical-600 hover:bg-botanical-700 text-white text-sm font-semibold shadow-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Tambah Bibit Baru</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Ringkasan Statistik -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+                <div class="flex items-center justify-between text-stone-500 text-xs font-medium mb-1">
+                    <span>Total Pendapatan (Lunas)</span>
+                    <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-rupiah-sign"></i></span>
+                </div>
+                <div id="stat-revenue" class="font-display text-xl sm:text-2xl font-extrabold text-stone-900">Rp 0</div>
+                <div class="text-[11px] text-emerald-600 mt-1 font-medium"><i class="fa-solid fa-circle-check mr-1"></i>Pesanan terkonfirmasi</div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+                <div class="flex items-center justify-between text-stone-500 text-xs font-medium mb-1">
+                    <span>Perlu Diproses / Cek Bayar</span>
+                    <span class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-clock"></i></span>
+                </div>
+                <div id="stat-pending" class="font-display text-xl sm:text-2xl font-extrabold text-stone-900">0</div>
+                <div class="text-[11px] text-amber-600 mt-1 font-medium">Menunggu verifikasi / kirim</div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+                <div class="flex items-center justify-between text-stone-500 text-xs font-medium mb-1">
+                    <span>Total Jenis Bibit</span>
+                    <span class="w-8 h-8 rounded-lg bg-botanical-50 text-botanical-600 flex items-center justify-center"><i class="fa-solid fa-seedling"></i></span>
+                </div>
+                <div id="stat-products" class="font-display text-xl sm:text-2xl font-extrabold text-stone-900">0</div>
+                <div class="text-[11px] text-stone-500 mt-1">Aktif di katalog pembeli</div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-stone-200/80 shadow-sm">
+                <div class="flex items-center justify-between text-stone-500 text-xs font-medium mb-1">
+                    <span>Stok Menipis (&le; 5)</span>
+                    <span class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                </div>
+                <div id="stat-low-stock" class="font-display text-xl sm:text-2xl font-extrabold text-rose-600">0</div>
+                <div class="text-[11px] text-stone-500 mt-1">Segera restock dari kebun</div>
+            </div>
+        </div>
+
+        <!-- Admin Navigation Tabs -->
+        <div class="flex border-b border-stone-200 mb-6 gap-6">
+            <button id="tab-btn-orders" onclick="switchAdminTab('orders')" class="pb-3 text-sm font-bold border-b-2 border-botanical-600 text-botanical-700 flex items-center gap-2 transition">
+                <i class="fa-solid fa-receipt"></i>
+                <span>Manajemen Pesanan & Otomatisasi WA</span>
+            </button>
+            <button id="tab-btn-stock" onclick="switchAdminTab('stock')" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-stone-500 hover:text-stone-800 flex items-center gap-2 transition">
+                <i class="fa-solid fa-boxes-stacked"></i>
+                <span>Kelola Stok & Katalog Bibit</span>
+            </button>
+        </div>
+
+        <!-- TAB 1: MANAJEMEN PESANAN & LOG WEBHOOK WHATSAPP -->
+        <div id="admin-tab-orders" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Kolom Kiri: Daftar Pesanan (7 kolom) -->
+            <div class="lg:col-span-7 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-display font-bold text-base text-stone-800">Daftar Pesanan Masuk</h2>
+                    <span class="text-xs text-stone-500 bg-stone-100 px-2.5 py-1 rounded-lg">Ubah status untuk memicu WA otomatis</span>
+                </div>
+                <div id="admin-orders-list" class="space-y-4">
+                    <!-- Kartu pesanan diisi lewat JS -->
+                </div>
+            </div>
+
+            <!-- Kolom Kanan: Panel Simulasi Log Webhook WhatsApp API (5 kolom) -->
+            <div class="lg:col-span-5">
+                <div class="bg-stone-900 text-stone-100 rounded-2xl shadow-lg border border-stone-800 overflow-hidden sticky top-20">
+                    <div class="bg-stone-950 px-4 py-3.5 border-b border-stone-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                            <h3 class="font-display font-bold text-sm text-white flex items-center gap-2">
+                                <i class="fa-brands fa-whatsapp text-emerald-400 text-base"></i>
+                                Log Webhook WhatsApp API
+                            </h3>
+                        </div>
+                        <button onclick="clearWaLogs()" class="text-[11px] text-stone-400 hover:text-white transition">Bersihkan</button>
+                    </div>
+                    <div class="p-3 bg-stone-900/90 border-b border-stone-800 text-[11px] text-stone-400">
+                        Setiap perubahan status pesanan di sebelah kiri otomatis menembakkan pesan WhatsApp ke nomor pembeli.
+                    </div>
+                    <div id="wa-webhook-logs" class="p-4 space-y-3 max-h-[540px] overflow-y-auto">
+                        <!-- Log pesan otomatis diisi lewat JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: KELOLA STOK & KATALOG BIBIT -->
+        <div id="admin-tab-stock" class="hidden bg-white rounded-2xl border border-stone-200/80 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h2 class="font-display font-bold text-base text-stone-800">Inventaris Stok Bibit Tanaman</h2>
+                    <p class="text-xs text-stone-500">Perubahan stok di sini langsung mengubah ketersediaan di Halaman Pembeli.</p>
+                </div>
+                <button onclick="openAddProductModal()" class="px-3.5 py-2 rounded-xl bg-botanical-50 hover:bg-botanical-100 text-botanical-700 text-xs font-bold transition self-start sm:self-auto">
+                    + Tambah Varietas Bibit
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-stone-50 border-b border-stone-200 text-xs uppercase text-stone-500 font-semibold">
+                            <th class="py-3.5 px-4">Bibit Tanaman</th>
+                            <th class="py-3.5 px-4">Kategori</th>
+                            <th class="py-3.5 px-4">Spesifikasi</th>
+                            <th class="py-3.5 px-4">Harga Satuan</th>
+                            <th class="py-3.5 px-4 text-center">Kontrol Stok</th>
+                            <th class="py-3.5 px-4 text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-stock-table" class="divide-y divide-stone-100 text-sm">
+                        <!-- Baris stok diisi lewat JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+
+    <!-- ===================================================================== -->
+    <!-- DRAWER KERANJANG BELANJA & CHECKOUT WHATSAPP (PEMBELI)                -->
+    <!-- ===================================================================== -->
+    <div id="cart-drawer-backdrop" onclick="toggleCartDrawer(false)" class="fixed inset-0 bg-stone-900/50 backdrop-blur-xs z-50 hidden transition-opacity"></div>
+    <aside id="cart-drawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+        <!-- Drawer Header -->
+        <div class="px-5 py-4 border-b border-stone-200 flex items-center justify-between bg-botanical-50/50">
+            <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-basket-shopping text-botanical-600 text-lg"></i>
+                <h2 class="font-display font-bold text-lg text-stone-900">Keranjang & Checkout</h2>
+            </div>
+            <button onclick="toggleCartDrawer(false)" class="w-8 h-8 rounded-full hover:bg-stone-200/70 flex items-center justify-center text-stone-500 transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Drawer Body (Scrollable) -->
+        <div class="flex-1 overflow-y-auto p-5 space-y-6">
+            <!-- List Item Keranjang -->
+            <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-stone-400 mb-3">Bibit yang Dipilih</h3>
+                <div id="cart-items-container" class="space-y-3">
+                    <!-- Item keranjang diisi lewat JS -->
+                </div>
+            </div>
+
+            <!-- Form Data Pengiriman Pembeli -->
+            <form id="checkout-form" onsubmit="handleCheckoutSubmit(event)" class="space-y-3.5 pt-4 border-t border-stone-200">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-stone-400">Data Penerima & Pengiriman</h3>
+                
+                <div>
+                    <label class="block text-xs font-semibold text-stone-700 mb-1">Nama Lengkap *</label>
+                    <input type="text" id="buyer-name" required placeholder="Contoh: Budi Santoso" class="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-botanical-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-stone-700 mb-1">Nomor WhatsApp Aktif *</label>
+                    <input type="tel" id="buyer-wa" required placeholder="Contoh: 081234567890" class="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-botanical-500">
+                    <p class="text-[11px] text-stone-400 mt-1">Status pembayaran & nomor resi akan dikirim otomatis ke nomor ini.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-stone-700 mb-1">Alamat Lengkap Pengiriman *</label>
+                    <textarea id="buyer-address" rows="2" required placeholder="Jl. Melati No. 12, Kec. Lowokwaru, Kota Malang" class="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-botanical-500"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-stone-700 mb-1">Pilihan Ekspedisi / Kurir</label>
+                    <select id="buyer-courier" onchange="updateCartSummary()" class="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-sm bg-white focus:outline-none focus:border-botanical-500">
+                        <option value="J&T Cargo (Packing Kayu) - Rp 25.000" data-cost="25000">J&T Cargo (Packing Kayu Aman) - Rp 25.000</option>
+                        <option value="JNE Trucking (JTR) - Rp 30.000" data-cost="30000">JNE Trucking (JTR) - Rp 30.000</option>
+                        <option value="Kurir Lokal Kebun (Instan) - Rp 15.000" data-cost="15000">Kurir Lokal Kebun (Area Kota) - Rp 15.000</option>
+                    </select>
+                </div>
+
+                <!-- Ringkasan Biaya -->
+                <div class="bg-stone-50 p-3.5 rounded-xl border border-stone-200/80 space-y-1.5 text-sm">
+                    <div class="flex justify-between text-stone-600">
+                        <span>Subtotal Bibit</span>
+                        <span id="cart-subtotal" class="font-semibold">Rp 0</span>
+                    </div>
+                    <div class="flex justify-between text-stone-600">
+                        <span>Ongkos Kirim & Packing</span>
+                        <span id="cart-shipping" class="font-semibold">Rp 25.000</span>
+                    </div>
+                    <div class="flex justify-between text-base font-extrabold text-botanical-800 pt-2 border-t border-stone-200">
+                        <span>Total Bayar</span>
+                        <span id="cart-total">Rp 0</span>
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-submit-checkout" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-whatsapp text-lg"></i>
+                    <span>Pesan & Bayar via WhatsApp</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 1: PRATINJAU PESAN WHATSAPP SETELAH CHECKOUT                    -->
+    <!-- ===================================================================== -->
+    <div id="modal-wa-checkout" class="fixed inset-0 bg-stone-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden fade-in">
+            <div class="bg-emerald-600 text-white px-5 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-brands fa-whatsapp text-2xl"></i>
+                    <div>
+                        <h3 class="font-display font-bold text-base">Pesanan Berhasil Dibuat!</h3>
+                        <p class="text-xs text-emerald-100">ID Pesanan: <span id="checkout-order-id" class="font-bold">#BIBIT-000</span></p>
+                    </div>
+                </div>
+                <button onclick="closeModal('modal-wa-checkout')" class="text-white/80 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <div class="p-5 space-y-4">
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 flex items-start gap-2.5">
+                    <i class="fa-solid fa-circle-info text-amber-500 mt-0.5"></i>
+                    <p>Pesanan Anda sudah masuk ke <strong>Halaman Admin</strong> dengan status <em>"Menunggu Pembayaran"</em>. Silakan lanjutkan konfirmasi ke WhatsApp Admin.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 uppercase mb-1.5">Pratinjau Pesan ke WhatsApp Admin:</label>
+                    <pre id="checkout-wa-preview" class="bg-stone-100 border border-stone-200 rounded-xl p-3.5 text-xs text-stone-800 whitespace-pre-wrap font-sans leading-relaxed max-h-56 overflow-y-auto"></pre>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-2.5 pt-2">
+                    <a id="btn-open-wa-link" href="#" target="_blank" rel="noopener noreferrer" class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm text-center flex items-center justify-center gap-2 transition">
+                        <i class="fa-brands fa-whatsapp text-base"></i>
+                        <span>Buka WhatsApp (wa.me)</span>
+                    </a>
+                    <button onclick="closeModal('modal-wa-checkout'); switchRole('admin');" class="py-2.5 px-4 rounded-xl bg-botanical-100 hover:bg-botanical-200 text-botanical-800 font-bold text-xs sm:text-sm transition">
+                        Lihat di Admin &rarr;
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 2: CEK STATUS PESANAN PEMBELI                                   -->
+    <!-- ===================================================================== -->
+    <div id="modal-track-order" class="fixed inset-0 bg-stone-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden fade-in">
+            <div class="px-5 py-4 border-b border-stone-200 flex items-center justify-between">
+                <h3 class="font-display font-bold text-lg text-stone-900 flex items-center gap-2">
+                    <i class="fa-solid fa-magnifying-glass-location text-botanical-600"></i>
+                    Cek Status Pesanan Bibit
+                </h3>
+                <button onclick="closeModal('modal-track-order')" class="text-stone-400 hover:text-stone-700">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="flex gap-2">
+                    <input type="text" id="track-query-input" placeholder="Masukkan ID Pesanan (misal: BIBIT-101) atau No. WA" class="flex-1 px-3.5 py-2.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:border-botanical-500">
+                    <button onclick="searchOrderStatus()" class="px-4 py-2.5 rounded-xl bg-botanical-600 hover:bg-botanical-700 text-white font-semibold text-sm transition">
+                        Cari
+                    </button>
+                </div>
+                <div id="track-result-container" class="space-y-3 max-h-80 overflow-y-auto">
+                    <!-- Hasil pencarian pesanan -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 3: TAMBAH BIBIT TANAMAN BARU (ADMIN)                            -->
+    <!-- ===================================================================== -->
+    <div id="modal-add-product" class="fixed inset-0 bg-stone-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden fade-in">
+            <div class="px-5 py-4 border-b border-stone-200 flex items-center justify-between bg-botanical-50">
+                <h3 class="font-display font-bold text-lg text-botanical-900">Tambah Bibit Tanaman Baru</h3>
+                <button onclick="closeModal('modal-add-product')" class="text-stone-400 hover:text-stone-700">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form onsubmit="handleAddProduct(event)" class="p-5 space-y-3.5">
+                <div>
+                    <label class="block text-xs font-semibold text-stone-700 mb-1">Nama Bibit Tanaman *</label>
+                    <input type="text" id="new-prod-name" required placeholder="Contoh: Bibit Durian Musang King Kaki 3" class="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-700 mb-1">Kategori *</label>
+                        <select id="new-prod-category" class="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm bg-white">
+                            <option value="Bibit Buah">Bibit Buah</option>
+                            <option value="Tanaman Hias">Tanaman Hias</option>
+                            <option value="Bibit Kayu/Peneduh">Bibit Kayu/Peneduh</option>
+                            <option value="Herbal/Rempah">Herbal/Rempah</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-700 mb-1">Ikon Ilustrasi</label>
+                        <select id="new-prod-emoji" class="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm bg-white">
+                            <option value="🌱">🌱 Tunas Bibit</option>
+                            <option value="🥭">🥭 Buah Tropis</option>
+                            <option value="🍊">🍊 Jeruk / Citrus</option>
+                            <option value="🥑">🥑 Alpukat</option>
+                            <option value="🪴">🪴 Tanaman Hias Pot</option>
+                            <option value="🌳">🌳 Pohon Peneduh</option>
+                            <option value="🌿">🌿 Daun Herbal</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-stone-700 mb-1">Spesifikasi Bibit *</label>
+                    <input type="text" id="new-prod-spec" required placeholder="Contoh: Tinggi 50-70 cm, Hasil Okulasi" class="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-700 mb-1">Harga (Rp) *</label>
+                        <input type="number" id="new-prod-price" required min="1000" step="500" placeholder="45000" class="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-stone-700 mb-1">Stok Awal *</label>
+                        <input type="number" id="new-prod-stock" required min="1" placeholder="20" class="w-full px-3.5 py-2 rounded-xl border border-stone-200 text-sm">
+                    </div>
+                </div>
+                <div class="pt-3 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('modal-add-product')" class="px-4 py-2 rounded-xl border border-stone-200 text-sm font-semibold text-stone-600">Batal</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-botanical-600 hover:bg-botanical-700 text-white text-sm font-bold">Simpan ke Katalog</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ===================================================================== -->
+    <!-- JAVASCRIPT: STATE MANAGEMENT, LOGIKA TOKO & OTOMATISASI WHATSAPP      -->
+    <!-- ===================================================================== -->
+    <script>
+        // Nomor WhatsApp Admin Toko (Simulasi)
+        const ADMIN_WA_NUMBER = "6281234567890";
+
+        // 1. DATA KATALOG BIBIT AWAL
+        let products = [
+            {
+                id: "PRD-01",
+                name: "Bibit Mangga Alpukat Klonal 21",
+                category: "Bibit Buah",
+                spec: "Tinggi 60-80 cm • Okulasi Cepat Berbuah",
+                price: 55000,
+                stock: 14,
+                emoji: "🥭",
+                bgTone: "from-amber-100 to-emerald-100"
+            },
+            {
+                id: "PRD-02",
+                name: "Bibit Alpukat Aligator Unggul",
+                category: "Bibit Buah",
+                spec: "Tinggi 50-70 cm • Sambung Pucuk",
+                price: 45000,
+                stock: 4,
+                emoji: "🥑",
+                bgTone: "from-lime-100 to-emerald-100"
+            },
+            {
+                id: "PRD-03",
+                name: "Monstera Deliciosa King",
+                category: "Tanaman Hias",
+                spec: "Daun Pecah 4-5 Helai • Polybag 25cm",
+                price: 85000,
+                stock: 7,
+                emoji: "🪴",
+                bgTone: "from-emerald-100 to-teal-100"
+            },
+            {
+                id: "PRD-04",
+                name: "Bibit Durian Bawor Kaki Tiga",
+                category: "Bibit Buah",
+                spec: "Tinggi 75-90 cm • Akar Kokoh",
+                price: 95000,
+                stock: 9,
+                emoji: "🌳",
+                bgTone: "from-yellow-100 to-emerald-100"
+            },
+            {
+                id: "PRD-05",
+                name: "Bibit Tabebuya Pink Peneduh",
+                category: "Bibit Kayu/Peneduh",
+                spec: "Tinggi 100-120 cm • Siap Tanam Lahan",
+                price: 65000,
+                stock: 12,
+                emoji: "🌸",
+                bgTone: "from-pink-100 to-rose-50"
+            },
+            {
+                id: "PRD-06",
+                name: "Bibit Jahe Merah Organik",
+                category: "Herbal/Rempah",
+                spec: "Rumpun Sehat 3-4 Tunas • Bebas Hama",
+                price: 18000,
+                stock: 25,
+                emoji: "🌿",
+                bgTone: "from-emerald-50 to-lime-100"
+            },
+            {
+                id: "PRD-07",
+                name: "Bibit Jeruk Santang Madu",
+                category: "Bibit Buah",
+                spec: "Tinggi 50-65 cm • Cocok Tabulampot",
+                price: 40000,
+                stock: 0, // Contoh stok habis
+                emoji: "🍊",
+                bgTone: "from-orange-100 to-amber-50"
+            },
+            {
+                id: "PRD-08",
+                name: "Bibit Rosemary & Mint Aromatik",
+                category: "Herbal/Rempah",
+                spec: "Tinggi 25-35 cm • Media Sekam Bakar",
+                price: 25000,
+                stock: 11,
+                emoji: "🌱",
+                bgTone: "from-teal-50 to-emerald-100"
+            }
+        ];
+
+        // 2. DATA PESANAN AWAL (SAMPEL)
+        let orders = [
+            {
+                id: "BIBIT-101",
+                buyerName: "Rina Kartika",
+                buyerWa: "081298765432",
+                address: "Perum Griya Asri Blok C4, Sleman, Yogyakarta",
+                courier: "J&T Cargo (Packing Kayu) - Rp 25.000",
+                shippingCost: 25000,
+                items: [
+                    { productId: "PRD-03", name: "Monstera Deliciosa King", price: 85000, qty: 1 },
+                    { productId: "PRD-08", name: "Bibit Rosemary & Mint Aromatik", price: 25000, qty: 2 }
+                ],
+                totalAmount: 160000,
+                status: "Menunggu Pembayaran",
+                stockDeducted: false, // Flag agar stok tidak terpotong dua kali
+                trackingNumber: "",
+                createdAt: "Hari ini, 09:15 WIB"
+            },
+            {
+                id: "BIBIT-100",
+                buyerName: "Hendra Wijaya",
+                buyerWa: "085711223344",
+                address: "Jl. Raya Bogor KM 28, Cibinong, Kab. Bogor",
+                courier: "JNE Trucking (JTR) - Rp 30.000",
+                shippingCost: 30000,
+                items: [
+                    { productId: "PRD-01", name: "Bibit Mangga Alpukat Klonal 21", price: 55000, qty: 2 }
+                ],
+                totalAmount: 140000,
+                status: "Dikirim",
+                stockDeducted: true,
+                trackingNumber: "JTR8829104421",
+                createdAt: "Kemarin, 15:40 WIB"
+            }
+        ];
+
+        // 3. LOG WEBHOOK WHATSAPP API AWAL
+        let waLogs = [
+            {
+                time: "Kemarin, 15:45 WIB",
+                orderId: "BIBIT-100",
+                targetWa: "085711223344",
+                buyerName: "Hendra Wijaya",
+                status: "Dikirim",
+                message: "Halo Kak Hendra Wijaya! 🌱 Kabar baik, bibit pesanan *#BIBIT-100* telah dikirim via *JNE Trucking (JTR)* dengan No. Resi: *JTR8829104421*.\n\nTips: Saat paket tiba, segera buka packing kayu, letakkan bibit di tempat teduh selama 2 hari, dan siram secukupnya ya!"
+            }
+        ];
+
+        // State UI
+        let cart = [];
+        let selectedCategory = "Semua";
+        let currentRole = "buyer";
+
+        // Format Rupiah
+        function formatRupiah(num) {
+            return "Rp " + num.toLocaleString("id-ID");
+        }
+
+        // Toast Notification
+        function showToast(title, message, type = "success") {
+            const container = document.getElementById("toast-container");
+            const colors = {
+                success: "bg-botanical-800 border-botanical-600 text-white",
+                warning: "bg-amber-700 border-amber-500 text-white",
+                info: "bg-stone-800 border-stone-600 text-white"
+            };
+            const icons = {
+                success: "fa-circle-check text-emerald-400",
+                warning: "fa-triangle-exclamation text-amber-300",
+                info: "fa-brands fa-whatsapp text-emerald-400"
+            };
+
+            const toast = document.createElement("div");
+            toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-xl flex items-start gap-3 fade-in ${colors[type] || colors.success}`;
+            toast.innerHTML = `
+                <i class="fa-solid ${icons[type] || icons.success} mt-0.5 text-base"></i>
+                <div class="flex-1 text-xs">
+                    <div class="font-bold text-sm mb-0.5">${title}</div>
+                    <div class="opacity-90 leading-snug">${message}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transition = "opacity 0.3s ease";
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // =====================================================================
+        // SWITCH ROLE (HALAMAN PEMBELI VS HALAMAN ADMIN)
+        // =====================================================================
+        function switchRole(role) {
+            currentRole = role;
+            const buyerView = document.getElementById("view-buyer");
+            const adminView = document.getElementById("view-admin");
+            const btnBuyer = document.getElementById("btn-mode-buyer");
+            const btnAdmin = document.getElementById("btn-mode-admin");
+
+            if (role === "buyer") {
+                buyerView.classList.remove("hidden");
+                adminView.classList.add("hidden");
+                btnBuyer.className = "px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 bg-botanical-500 text-white shadow-sm";
+                btnAdmin.className = "px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 text-botanical-200 hover:text-white";
+                renderCatalog();
+            } else {
+                buyerView.classList.add("hidden");
+                adminView.classList.remove("hidden");
+                btnAdmin.className = "px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 bg-terracotta-500 text-white shadow-sm";
+                btnBuyer.className = "px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 text-botanical-200 hover:text-white";
+                renderAdminDashboard();
+            }
+        }
+
+        // =====================================================================
+        // LOGIKA HALAMAN PEMBELI (KATALOG, KERANJANG, CHECKOUT, CEK RESI)
+        // =====================================================================
+        function renderCategoryFilters() {
+            const categories = ["Semua", "Bibit Buah", "Tanaman Hias", "Bibit Kayu/Peneduh", "Herbal/Rempah"];
+            const container = document.getElementById("category-filters");
+            container.innerHTML = categories.map(cat => {
+                const active = selectedCategory === cat;
+                return `
+                    <button onclick="selectCategory('${cat}')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
+                        active 
+                        ? "bg-botanical-600 text-white shadow-xs" 
+                        : "bg-stone-100 text-stone-600 hover:bg-botanical-50 hover:text-botanical-700"
+                    }">
+                        ${cat}
+                    </button>
+                `;
+            }).join("");
+        }
+
+        function selectCategory(cat) {
+            selectedCategory = cat;
+            renderCategoryFilters();
+            renderCatalog();
+        }
+
+        function renderCatalog() {
+            const query = document.getElementById("search-input").value.toLowerCase();
+            const grid = document.getElementById("catalog-grid");
+
+            const filtered = products.filter(p => {
+                const matchCat = selectedCategory === "Semua" || p.category === selectedCategory;
+                const matchQuery = p.name.toLowerCase().includes(query) || p.spec.toLowerCase().includes(query);
+                return matchCat && matchQuery;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12 bg-white rounded-2xl border border-stone-200">
+                        <div class="text-4xl mb-2">🍂</div>
+                        <h3 class="font-display font-bold text-stone-800">Bibit tidak ditemukan</h3>
+                        <p class="text-xs text-stone-500 mt-1">Coba kata kunci pencarian lain atau pilih kategori "Semua".</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(p => {
+                const isOutOfStock = p.stock <= 0;
+                const inCart = cart.find(c => c.productId === p.id);
+                const qtyInCart = inCart ? inCart.qty : 0;
+
+                return `
+                    <div class="bg-white rounded-2xl border border-stone-200/80 shadow-xs hover:shadow-md transition-all flex flex-col overflow-hidden group ${isOutOfStock ? 'opacity-75' : ''}">
+                        <!-- Ilustrasi Tanaman -->
+                        <div class="h-40 bg-gradient-to-br ${p.bgTone} relative flex items-center justify-center p-4">
+                            <span class="text-6xl transform group-hover:scale-110 transition-transform duration-300 select-none">${p.emoji}</span>
+                            <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-white/90 backdrop-blur-xs text-[11px] font-bold text-botanical-800 shadow-2xs">
+                                ${p.category}
+                            </span>
+                            <!-- Indikator Stok Real-Time -->
+                            <span class="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg text-[11px] font-bold shadow-2xs ${
+                                isOutOfStock 
+                                ? 'bg-rose-600 text-white' 
+                                : (p.stock <= 5 ? 'bg-amber-500 text-white' : 'bg-botanical-800/90 text-white')
+                            }">
+                                ${isOutOfStock ? 'Stok Habis' : `Tersedia: ${p.stock} bibit`}
+                            </span>
+                        </div>
+
+                        <!-- Info Bibit -->
+                        <div class="p-4 flex-1 flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-display font-bold text-base text-stone-900 leading-snug mb-1">${p.name}</h3>
+                                <p class="text-xs text-stone-500 mb-3">${p.spec}</p>
+                            </div>
+
+                            <div class="pt-3 border-t border-stone-100 flex items-center justify-between gap-2">
+                                <div>
+                                    <span class="text-[10px] uppercase text-stone-400 font-semibold block">Harga Satuan</span>
+                                    <span class="font-display font-extrabold text-base text-botanical-700">${formatRupiah(p.price)}</span>
+                                </div>
+
+                                <button 
+                                    onclick="addToCart('${p.id}')" 
+                                    ${isOutOfStock ? 'disabled' : ''}
+                                    class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                                        isOutOfStock 
+                                        ? 'bg-stone-200 text-stone-400 cursor-not-allowed' 
+                                        : 'bg-botanical-600 hover:bg-botanical-700 text-white shadow-xs active:scale-95'
+                                    }">
+                                    <i class="fa-solid fa-cart-plus"></i>
+                                    <span>${qtyInCart > 0 ? `+ Keranjang (${qtyInCart})` : '+ Keranjang'}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product || product.stock <= 0) return;
+
+            const existing = cart.find(item => item.productId === productId);
+            if (existing) {
+                if (existing.qty >= product.stock) {
+                    showToast("Batas Stok Tercapai", `Stok ${product.name} hanya tersisa ${product.stock} bibit.`, "warning");
+                    return;
+                }
+                existing.qty += 1;
+            } else {
+                cart.push({ productId: product.id, qty: 1 });
+            }
+
+            updateCartBadge();
+            renderCatalog();
+            showToast("Masuk Keranjang", `${product.name} ditambahkan ke keranjang belanja.`);
+        }
+
+        function updateCartQty(productId, delta) {
+            const idx = cart.findIndex(item => item.productId === productId);
+            if (idx === -1) return;
+
+            const product = products.find(p => p.id === productId);
+            const newQty = cart[idx].qty + delta;
+
+            if (newQty <= 0) {
+                cart.splice(idx, 1);
+            } else if (product && newQty > product.stock) {
+                showToast("Stok Maksimal", `Hanya tersedia ${product.stock} bibit di kebun.`, "warning");
+                return;
+            } else {
+                cart[idx].qty = newQty;
+            }
+
+            updateCartBadge();
+            renderCartDrawer();
+            renderCatalog();
+        }
+
+        function updateCartBadge() {
+            const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+            document.getElementById("cart-count-badge").textContent = totalItems;
+        }
+
+        function toggleCartDrawer(open) {
+            const backdrop = document.getElementById("cart-drawer-backdrop");
+            const drawer = document.getElementById("cart-drawer");
+            if (open) {
+                renderCartDrawer();
+                backdrop.classList.remove("hidden");
+                setTimeout(() => drawer.classList.remove("translate-x-full"), 10);
+            } else {
+                drawer.classList.add("translate-x-full");
+                setTimeout(() => backdrop.classList.add("hidden"), 250);
+            }
+        }
+
+        function renderCartDrawer() {
+            const container = document.getElementById("cart-items-container");
+            const form = document.getElementById("checkout-form");
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 bg-stone-50 rounded-2xl border border-dashed border-stone-200">
+                        <div class="text-3xl mb-2">🛒</div>
+                        <p class="text-sm font-semibold text-stone-700">Keranjang masih kosong</p>
+                        <p class="text-xs text-stone-400 mt-1">Pilih bibit tanaman favorit Anda di katalog.</p>
+                    </div>
+                `;
+                form.classList.add("opacity-50", "pointer-events-none");
+                updateCartSummary();
+                return;
+            }
+
+            form.classList.remove("opacity-50", "pointer-events-none");
+            container.innerHTML = cart.map(item => {
+                const p = products.find(prod => prod.id === item.productId);
+                if (!p) return "";
+                return `
+                    <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-stone-50 border border-stone-200/70">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">${p.emoji}</span>
+                            <div>
+                                <h4 class="text-xs font-bold text-stone-900 leading-tight">${p.name}</h4>
+                                <span class="text-xs font-semibold text-botanical-700">${formatRupiah(p.price)}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white border border-stone-200 rounded-lg px-1.5 py-1">
+                            <button type="button" onclick="updateCartQty('${p.id}', -1)" class="w-6 h-6 rounded-md hover:bg-stone-100 text-stone-600 font-bold text-xs">-</button>
+                            <span class="text-xs font-bold w-5 text-center">${item.qty}</span>
+                            <button type="button" onclick="updateCartQty('${p.id}', 1)" class="w-6 h-6 rounded-md hover:bg-stone-100 text-stone-600 font-bold text-xs">+</button>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
+            updateCartSummary();
+        }
+
+        function updateCartSummary() {
+            const subtotal = cart.reduce((sum, item) => {
+                const p = products.find(prod => prod.id === item.productId);
+                return sum + (p ? p.price * item.qty : 0);
+            }, 0);
+
+            const courierSelect = document.getElementById("buyer-courier");
+            const shippingCost = Number(courierSelect.options[courierSelect.selectedIndex].dataset.cost || 0);
+            const total = subtotal > 0 ? subtotal + shippingCost : 0;
+
+            document.getElementById("cart-subtotal").textContent = formatRupiah(subtotal);
+            document.getElementById("cart-shipping").textContent = formatRupiah(subtotal > 0 ? shippingCost : 0);
+            document.getElementById("cart-total").textContent = formatRupiah(total);
+        }
+
+        // Proses Checkout Pembeli -> Simpan ke State Pesanan & Tampilkan Pratinjau WA
+        function handleCheckoutSubmit(e) {
+            e.preventDefault();
+            if (cart.length === 0) return;
+
+            const buyerName = document.getElementById("buyer-name").value.trim();
+            const buyerWa = document.getElementById("buyer-wa").value.trim();
+            const address = document.getElementById("buyer-address").value.trim();
+            const courierSelect = document.getElementById("buyer-courier");
+            const courierText = courierSelect.value;
+            const shippingCost = Number(courierSelect.options[courierSelect.selectedIndex].dataset.cost || 0);
+
+            const orderItems = cart.map(item => {
+                const p = products.find(prod => prod.id === item.productId);
+                return {
+                    productId: p.id,
+                    name: p.name,
+                    price: p.price,
+                    qty: item.qty
+                };
+            });
+
+            const subtotal = orderItems.reduce((sum, i) => sum + (i.price * i.qty), 0);
+            const totalAmount = subtotal + shippingCost;
+            const newOrderId = "BIBIT-" + (100 + orders.length + 1);
+
+            const newOrder = {
+                id: newOrderId,
+                buyerName,
+                buyerWa,
+                address,
+                courier: courierText,
+                shippingCost,
+                items: orderItems,
+                totalAmount,
+                status: "Menunggu Pembayaran",
+                stockDeducted: false,
+                trackingNumber: "",
+                createdAt: "Baru saja"
+            };
+
+            // Simpan pesanan ke daftar pesanan (muncul di Admin)
+            orders.unshift(newOrder);
+
+            // Susun template pesan WhatsApp ke Admin
+            const itemsListText = orderItems.map((i, idx) => `${idx + 1}. ${i.name} (${i.qty}x) = ${formatRupiah(i.price * i.qty)}`).join("\n");
+            const waMessage = `Halo Admin *Kebun Nusantara* 🌱,\nSaya ingin melakukan pemesanan bibit tanaman:\n\n*ID Pesanan:* #${newOrderId}\n*Nama:* ${buyerName}\n*No. WA:* ${buyerWa}\n*Alamat:* ${address}\n\n*Daftar Bibit:*\n${itemsListText}\n\n*Ekspedisi:* ${courierText}\n*Total Pembayaran:* *${formatRupiah(totalAmount)}*\n\nMohon info nomor rekening/QRIS untuk pembayaran ya Admin. Terima kasih!`;
+
+            // Tampilkan Modal Pratinjau WhatsApp
+            document.getElementById("checkout-order-id").textContent = `#${newOrderId}`;
+            document.getElementById("checkout-wa-preview").textContent = waMessage;
+            document.getElementById("btn-open-wa-link").href = `https://wa.me/${ADMIN_WA_NUMBER}?text=${encodeURIComponent(waMessage)}`;
+
+            // Reset keranjang & tutup drawer
+            cart = [];
+            updateCartBadge();
+            renderCatalog();
+            toggleCartDrawer(false);
+            updateAdminBadge();
+
+            // Buka modal pratinjau
+            openModal("modal-wa-checkout");
+        }
+
+        // Fitur Cek Status Pesanan Pembeli
+        function openTrackOrderModal() {
+            document.getElementById("track-query-input").value = "";
+            renderTrackResults(orders); // Tampilkan semua pesanan sampel agar mudah diuji
+            openModal("modal-track-order");
+        }
+
+        function searchOrderStatus() {
+            const q = document.getElementById("track-query-input").value.trim().toLowerCase();
+            if (!q) {
+                renderTrackResults(orders);
+                return;
+            }
+            const matched = orders.filter(o => o.id.toLowerCase().includes(q) || o.buyerWa.includes(q) || o.buyerName.toLowerCase().includes(q));
+            renderTrackResults(matched);
+        }
+
+        function renderTrackResults(list) {
+            const container = document.getElementById("track-result-container");
+            if (list.length === 0) {
+                container.innerHTML = `<p class="text-center text-xs text-stone-500 py-6">Pesanan tidak ditemukan. Periksa kembali ID Pesanan atau Nomor WA Anda.</p>`;
+                return;
+            }
+
+            container.innerHTML = list.map(o => `
+                <div class="p-3.5 rounded-xl border border-stone-200 bg-stone-50 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-display font-bold text-sm text-botanical-800">#${o.id} • ${o.buyerName}</span>
+                        ${getStatusBadgeHtml(o.status)}
+                    </div>
+                    <div class="text-xs text-stone-600">
+                        ${o.items.map(i => `${i.name} (${i.qty}x)`).join(", ")}
+                    </div>
+                    <div class="flex items-center justify-between text-xs pt-2 border-t border-stone-200/70">
+                        <span class="font-bold text-stone-800">Total: ${formatRupiah(o.totalAmount)}</span>
+                        ${o.trackingNumber ? `<span class="font-mono bg-white px-2 py-0.5 rounded border border-stone-200 text-botanical-700 font-bold">Resi: ${o.trackingNumber}</span>` : `<span class="text-stone-400">${o.createdAt}</span>`}
+                    </div>
+                </div>
+            `).join("");
+        }
+
+
+        // =====================================================================
+        // LOGIKA HALAMAN ADMIN (KELOLA PESANAN, STOK OTOMATIS & WEBHOOK WA)
+        // =====================================================================
+        function updateAdminBadge() {
+            const pendingCount = orders.filter(o => o.status === "Menunggu Pembayaran" || o.status === "Pembayaran Diterima (Diproses)").length;
+            const badge = document.getElementById("admin-badge-count");
+            badge.textContent = pendingCount;
+            badge.style.display = pendingCount > 0 ? "inline-block" : "none";
+        }
+
+        function switchAdminTab(tab) {
+            const tabOrders = document.getElementById("admin-tab-orders");
+            const tabStock = document.getElementById("admin-tab-stock");
+            const btnOrders = document.getElementById("tab-btn-orders");
+            const btnStock = document.getElementById("tab-btn-stock");
+
+            if (tab === "orders") {
+                tabOrders.classList.remove("hidden");
+                tabStock.classList.add("hidden");
+                btnOrders.className = "pb-3 text-sm font-bold border-b-2 border-botanical-600 text-botanical-700 flex items-center gap-2 transition";
+                btnStock.className = "pb-3 text-sm font-semibold border-b-2 border-transparent text-stone-500 hover:text-stone-800 flex items-center gap-2 transition";
+            } else {
+                tabOrders.classList.add("hidden");
+                tabStock.classList.remove("hidden");
+                btnStock.className = "pb-3 text-sm font-bold border-b-2 border-botanical-600 text-botanical-700 flex items-center gap-2 transition";
+                btnOrders.className = "pb-3 text-sm font-semibold border-b-2 border-transparent text-stone-500 hover:text-stone-800 flex items-center gap-2 transition";
+            }
+        }
+
+        function renderAdminDashboard() {
+            // Update Statistik
+            const revenue = orders
+                .filter(o => o.status !== "Menunggu Pembayaran" && o.status !== "Dibatalkan")
+                .reduce((sum, o) => sum + o.totalAmount, 0);
+            const pending = orders.filter(o => o.status === "Menunggu Pembayaran" || o.status === "Pembayaran Diterima (Diproses)").length;
+            const lowStock = products.filter(p => p.stock <= 5).length;
+
+            document.getElementById("stat-revenue").textContent = formatRupiah(revenue);
+            document.getElementById("stat-pending").textContent = pending + " Pesanan";
+            document.getElementById("stat-products").textContent = products.length + " Varietas";
+            document.getElementById("stat-low-stock").textContent = lowStock + " Bibit";
+
+            updateAdminBadge();
+            renderAdminOrders();
+            renderWaWebhookLogs();
+            renderAdminStockTable();
+        }
+
+        function getStatusBadgeHtml(status) {
+            const map = {
+                "Menunggu Pembayaran": "bg-amber-100 text-amber-800 border-amber-200",
+                "Pembayaran Diterima (Diproses)": "bg-blue-100 text-blue-800 border-blue-200",
+                "Dikirim": "bg-emerald-100 text-emerald-800 border-emerald-200",
+                "Selesai": "bg-stone-200 text-stone-700 border-stone-300",
+                "Dibatalkan": "bg-rose-100 text-rose-800 border-rose-200"
+            };
+            const cls = map[status] || "bg-stone-100 text-stone-700";
+            return `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold border ${cls}">${status}</span>`;
+        }
+
+        function renderAdminOrders() {
+            const container = document.getElementById("admin-orders-list");
+            const statuses = [
+                "Menunggu Pembayaran",
+                "Pembayaran Diterima (Diproses)",
+                "Dikirim",
+                "Selesai",
+                "Dibatalkan"
+            ];
+
+            container.innerHTML = orders.map(o => `
+                <div class="bg-white rounded-2xl border border-stone-200/90 p-4 shadow-xs space-y-3">
+                    <!-- Header Kartu Pesanan -->
+                    <div class="flex flex-wrap items-start justify-between gap-2 pb-2.5 border-b border-stone-100">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-display font-extrabold text-sm text-botanical-800">#${o.id}</span>
+                                <span class="text-xs text-stone-400">• ${o.createdAt}</span>
+                            </div>
+                            <div class="text-sm font-bold text-stone-900 mt-0.5">${o.buyerName} <span class="text-xs font-normal text-stone-500">(${o.buyerWa})</span></div>
+                        </div>
+                        ${getStatusBadgeHtml(o.status)}
+                    </div>
+
+                    <!-- Detail Item & Alamat -->
+                    <div class="bg-stone-50 rounded-xl p-3 text-xs space-y-1.5">
+                        <div class="font-semibold text-stone-700">Item Bibit:</div>
+                        <ul class="list-disc list-inside text-stone-600 space-y-0.5">
+                            ${o.items.map(i => `<li>${i.name} — <strong>${i.qty}x</strong> (${formatRupiah(i.price * i.qty)})</li>`).join("")}
+                        </ul>
+                        <div class="pt-1.5 border-t border-stone-200/70 text-stone-500">
+                            <i class="fa-solid fa-location-dot text-terracotta-500 mr-1"></i> ${o.address}
+                        </div>
+                        <div class="flex justify-between items-center pt-1 font-bold text-stone-800">
+                            <span>Kurir: ${o.courier.split(" - ")[0]}</span>
+                            <span class="text-sm text-botanical-700">Total: ${formatRupiah(o.totalAmount)}</span>
+                        </div>
+                    </div>
+
+                    <!-- Kontrol Ubah Status & Input Resi -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                        <div class="flex items-center gap-2 text-xs">
+                            ${o.stockDeducted 
+                                ? `<span class="text-emerald-600 font-semibold"><i class="fa-solid fa-box-open mr-1"></i>Stok telah terpotong</span>` 
+                                : `<span class="text-amber-600 font-semibold"><i class="fa-solid fa-hourglass-half mr-1"></i>Stok belum dipotong</span>`
+                            }
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2">
+                            <!-- Input Resi jika status Dikirim -->
+                            ${o.status === "Dikirim" || o.status === "Selesai" ? `
+                                <div class="flex items-center gap-1">
+                                    <input type="text" id="resi-input-${o.id}" value="${o.trackingNumber}" placeholder="No. Resi..." class="w-32 px-2.5 py-1.5 rounded-lg border border-stone-300 text-xs font-mono">
+                                    <button onclick="saveTrackingNumber('${o.id}')" class="px-2.5 py-1.5 rounded-lg bg-botanical-600 text-white text-xs font-bold hover:bg-botanical-700" title="Simpan Resi & Kirim WA">
+                                        Kirim Resi
+                                    </button>
+                                </div>
+                            ` : ""}
+
+                            <select onchange="updateOrderStatus('${o.id}', this.value)" class="px-3 py-1.5 rounded-xl border border-stone-300 bg-white text-xs font-bold text-stone-800 focus:outline-none focus:border-botanical-500">
+                                ${statuses.map(st => `<option value="${st}" ${o.status === st ? "selected" : ""}>${st}</option>`).join("")}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        // Logika Perubahan Status Pesanan + Potong Stok Otomatis + Tembak Webhook WA
+        function updateOrderStatus(orderId, newStatus) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order || order.status === newStatus) return;
+
+            const oldStatus = order.status;
+            order.status = newStatus;
+
+            // 1. LOGIKA POTONG STOK OTOMATIS
+            // Jika status berubah menjadi Pembayaran Diterima / Dikirim / Selesai dan stok belum dipotong
+            const paidStatuses = ["Pembayaran Diterima (Diproses)", "Dikirim", "Selesai"];
+            if (paidStatuses.includes(newStatus) && !order.stockDeducted) {
+                order.items.forEach(item => {
+                    const prod = products.find(p => p.id === item.productId);
+                    if (prod) {
+                        prod.stock = Math.max(0, prod.stock - item.qty);
+                    }
+                });
+                order.stockDeducted = true;
+                showToast("Stok Otomatis Berkurang!", `Stok bibit untuk pesanan #${order.id} otomatis diperbarui di katalog.`);
+            }
+
+            // Jika dibatalkan setelah stok terpotong, kembalikan stok
+            if (newStatus === "Dibatalkan" && order.stockDeducted) {
+                order.items.forEach(item => {
+                    const prod = products.find(p => p.id === item.productId);
+                    if (prod) {
+                        prod.stock += item.qty;
+                    }
+                });
+                order.stockDeducted = false;
+                showToast("Stok Dikembalikan", `Pesanan #${order.id} dibatalkan, stok bibit dikembalikan ke katalog.`, "warning");
+            }
+
+            // Jika diubah ke Dikirim dan belum ada resi, buatkan resi simulasi otomatis agar langsung terlihat
+            if (newStatus === "Dikirim" && !order.trackingNumber) {
+                order.trackingNumber = "KBN" + Math.floor(10000000 + Math.random() * 90000000);
+            }
+
+            // 2. SIMULASI TEMBAK WEBHOOK WHATSAPP API KE PEMBELI
+            triggerAutoWhatsAppNotification(order);
+
+            renderAdminDashboard();
+        }
+
+        function saveTrackingNumber(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            const input = document.getElementById(`resi-input-${orderId}`);
+            if (!order || !input) return;
+
+            order.trackingNumber = input.value.trim() || "KBN-RESI-001";
+            triggerAutoWhatsAppNotification(order);
+            renderWaWebhookLogs();
+            showToast("Resi Diperbarui", `Nomor resi ${order.trackingNumber} dikirim otomatis ke WhatsApp ${order.buyerName}.`, "info");
+        }
+
+        function triggerAutoWhatsAppNotification(order) {
+            let msg = "";
+            const courierName = order.courier.split(" - ")[0];
+
+            switch (order.status) {
+                case "Pembayaran Diterima (Diproses)":
+                    msg = `Halo Kak *${order.buyerName}*! 🌱\nPembayaran untuk pesanan *#${order.id}* sebesar *${formatRupiah(order.totalAmount)}* telah kami terima.\n\nTim Kebun Nusantara sedang menyiapkan, memberi vitamin akar, dan melakukan packing aman untuk bibit tanaman Anda.`;
+                    break;
+                case "Dikirim":
+                    msg = `Kabar baik Kak *${order.buyerName}*! 🚚🌿\nBibit pesanan *#${order.id}* sudah kami kirim melalui *${courierName}*.\n\n*No. Resi:* \`${order.trackingNumber}\`\n\n*Tips Perawatan Tiba:* Segera buka paket saat sampai, letakkan bibit di tempat teduh selama 2 hari agar beradaptasi, dan siram secukupnya ya!`;
+                    break;
+                case "Selesai":
+                    msg = `Terima kasih Kak *${order.buyerName}* telah berbelanja di *Kebun Nusantara*! 🌳✨\nPesanan *#${order.id}* telah selesai. Semoga bibitnya tumbuh subur dan cepat berbuah. Jika butuh konsultasi perawatan, balas pesan ini kapan saja ya!`;
+                    break;
+                case "Dibatalkan":
+                    msg = `Halo Kak *${order.buyerName}*, pesanan *#${order.id}* telah dibatalkan. Jika ada kendala pemesanan bibit, silakan hubungi admin kami kembali ya. Terima kasih 🙏`;
+                    break;
+                default:
+                    msg = `Halo Kak *${order.buyerName}*, status pesanan *#${order.id}* saat ini: *${order.status}*.`;
+            }
+
+            waLogs.unshift({
+                time: "Baru saja (Otomatis)",
+                orderId: order.id,
+                targetWa: order.buyerWa,
+                buyerName: order.buyerName,
+                status: order.status,
+                message: msg
+            });
+
+            showToast("Webhook WhatsApp Terkirim", `Notifikasi status "${order.status}" dikirim ke ${order.buyerWa}.`, "info");
+        }
+
+        function renderWaWebhookLogs() {
+            const container = document.getElementById("wa-webhook-logs");
+            if (waLogs.length === 0) {
+                container.innerHTML = `<div class="text-center text-xs text-stone-500 py-8">Belum ada log notifikasi WhatsApp otomatis. Ubah status pesanan di samping untuk menguji.</div>`;
+                return;
+            }
+
+            container.innerHTML = waLogs.map(log => `
+                <div class="bg-stone-800/90 border border-stone-700/80 rounded-xl p-3.5 space-y-2 fade-in">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="text-emerald-400 font-bold flex items-center gap-1.5">
+                            <i class="fa-solid fa-check-double"></i> Terkirim ke ${log.targetWa}
+                        </span>
+                        <span class="text-stone-400">${log.time}</span>
+                    </div>
+                    <div class="text-[11px] text-stone-300 font-semibold">
+                        Order #${log.orderId} • Trigger: <span class="text-amber-300">${log.status}</span>
+                    </div>
+                    <div class="bg-emerald-950/60 border border-emerald-800/50 rounded-lg p-2.5 text-xs text-stone-200 whitespace-pre-wrap leading-relaxed font-sans">${log.message}</div>
+                </div>
+            `).join("");
+        }
+
+        function clearWaLogs() {
+            waLogs = [];
+            renderWaWebhookLogs();
+        }
+
+        // TAB 2 ADMIN: KELOLA STOK & KATALOG
+        function renderAdminStockTable() {
+            const tbody = document.getElementById("admin-stock-table");
+            tbody.innerHTML = products.map(p => `
+                <tr class="hover:bg-stone-50/80 transition">
+                    <td class="py-3.5 px-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl bg-botanical-50 w-10 h-10 rounded-xl flex items-center justify-center">${p.emoji}</span>
+                            <div>
+                                <div class="font-bold text-stone-900">${p.name}</div>
+                                <div class="text-[11px] text-stone-400">${p.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <span class="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-700 text-xs font-semibold">${p.category}</span>
+                    </td>
+                    <td class="py-3.5 px-4 text-xs text-stone-600">${p.spec}</td>
+                    <td class="py-3.5 px-4 font-bold text-botanical-800">${formatRupiah(p.price)}</td>
+                    <td class="py-3.5 px-4">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="adjustProductStock('${p.id}', -1)" class="w-7 h-7 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-xs transition">-</button>
+                            <span class="w-8 text-center font-display font-extrabold text-sm">${p.stock}</span>
+                            <button onclick="adjustProductStock('${p.id}', 1)" class="w-7 h-7 rounded-lg bg-botanical-600 hover:bg-botanical-700 text-white font-bold text-xs transition">+</button>
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                        ${p.stock === 0 
+                            ? `<span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 text-xs font-bold">Stok Habis</span>`
+                            : (p.stock <= 5 
+                                ? `<span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">Menipis</span>`
+                                : `<span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">Tersedia</span>`
+                            )
+                        }
+                    </td>
+                </tr>
+            `).join("");
+        }
+
+        function adjustProductStock(productId, delta) {
+            const prod = products.find(p => p.id === productId);
+            if (!prod) return;
+            prod.stock = Math.max(0, prod.stock + delta);
+            renderAdminDashboard();
+        }
+
+        function openAddProductModal() {
+            openModal("modal-add-product");
+        }
+
+        function handleAddProduct(e) {
+            e.preventDefault();
+            const name = document.getElementById("new-prod-name").value.trim();
+            const category = document.getElementById("new-prod-category").value;
+            const emoji = document.getElementById("new-prod-emoji").value;
+            const spec = document.getElementById("new-prod-spec").value.trim();
+            const price = Number(document.getElementById("new-prod-price").value);
+            const stock = Number(document.getElementById("new-prod-stock").value);
+
+            const newProd = {
+                id: "PRD-0" + (products.length + 1),
+                name,
+                category,
+                spec,
+                price,
+                stock,
+                emoji,
+                bgTone: "from-botanical-100 to-emerald-50"
+            };
+
+            products.unshift(newProd);
+            e.target.reset();
+            closeModal("modal-add-product");
+            renderAdminDashboard();
+            showToast("Bibit Ditambahkan", `${name} kini tampil di katalog Halaman Pembeli.`);
+        }
+
+        // Helper Modal
+        function openModal(id) {
+            const el = document.getElementById(id);
+            el.classList.remove("hidden");
+            el.classList.add("flex");
+        }
+
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            el.classList.add("hidden");
+            el.classList.remove("flex");
+        }
+
+        // Inisialisasi Awal
+        window.onload = function() {
+            renderCategoryFilters();
+            renderCatalog();
+            updateCartBadge();
+            updateAdminBadge();
+        };
+    </script>
+</body>
+</html>
