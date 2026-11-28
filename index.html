@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kebun Nusantara - Pusat Bibit Tanaman Unggul</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</head>
+<body class="bg-stone-50 text-stone-800 min-h-screen flex flex-col">
+
+  <!-- Navbar Pembeli -->
+  <header class="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 bg-emerald-700 text-white rounded-xl flex items-center justify-center text-lg shadow-sm">
+          <i class="fa-solid fa-seedling"></i>
+        </div>
+        <div>
+          <h1 id="header-store-name" class="font-bold text-lg text-emerald-950 leading-tight">Kebun Nusantara</h1>
+          <p class="text-xs text-stone-500">Pemilik: <span id="header-owner-name" class="font-medium text-stone-700">-</span></p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-2.5">
+        <button onclick="openTrackModal()" class="text-xs sm:text-sm font-medium text-stone-600 hover:text-emerald-700 px-2.5 py-2 rounded-lg hover:bg-emerald-50 transition">
+          <i class="fa-solid fa-magnifying-glass mr-1"></i><span class="hidden md:inline">Cek Pesanan</span>
+        </button>
+
+        <button onclick="toggleCart()" class="relative bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition shadow-sm">
+          <i class="fa-solid fa-basket-shopping"></i>
+          <span class="hidden sm:inline">Keranjang</span>
+          <span id="cart-badge" class="bg-amber-400 text-emerald-950 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+        </button>
+
+        <!-- Area Akun Pembeli (Guest vs Logged In) -->
+        <div id="buyer-guest-actions" class="flex items-center gap-1.5">
+          <a href="auth.html?mode=login" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-3 py-2 rounded-xl text-xs font-bold transition">
+            <i class="fa-solid fa-right-to-bracket mr-1"></i>Login / Daftar
+          </a>
+        </div>
+
+        <div id="buyer-logged-actions" class="hidden items-center gap-1.5">
+          <span class="hidden md:inline-flex items-center bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-2 rounded-xl text-xs font-bold">
+            <i class="fa-solid fa-user-check text-emerald-700 mr-1"></i>@<span id="nav-buyer-username">user</span>
+          </span>
+          <button onclick="openMyOrdersModal()" class="bg-amber-400 hover:bg-amber-500 text-emerald-950 px-3 py-2 rounded-xl text-xs font-bold transition shadow-sm" title="Lihat Pesanan Saya">
+            <i class="fa-solid fa-receipt mr-1"></i>Lihat Yang Sudah Dipesan (<span id="nav-my-orders-count">0</span>)
+          </button>
+          <button onclick="logoutBuyer()" title="Keluar Akun Pembeli" class="text-xs text-red-600 hover:bg-red-50 border border-red-200 px-2.5 py-2 rounded-xl transition">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+
+        <a href="admin.html" title="Masuk ke Halaman Admin" class="text-xs text-stone-500 hover:text-stone-800 border border-stone-200 px-2.5 py-2 rounded-xl transition">
+          <i class="fa-solid fa-lock"></i><span class="hidden lg:inline ml-1">Admin</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-900 text-white py-10 px-4">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+      <div class="max-w-xl">
+        <span class="inline-block bg-emerald-700/70 border border-emerald-500/40 text-emerald-100 text-xs font-semibold px-3 py-1 rounded-full mb-3">
+          <i class="fa-brands fa-whatsapp mr-1"></i> WA Resmi Toko: <span id="hero-store-wa">-</span>
+        </span>
+        <h2 class="text-3xl md:text-4xl font-bold leading-tight mb-3">Wujudkan Kebun Impian dari Bibit Berkualitas</h2>
+        <p class="text-emerald-100/90 text-sm md:text-base mb-5">
+          Pilih bibit langsung dari katalog stok nyata kami. Pesan tanpa ribet, konfirmasi pembayaran langsung lewat WhatsApp, dan pantau pengiriman secara otomatis.
+        </p>
+        <div class="bg-amber-400/15 border border-amber-300/30 rounded-xl p-3 text-xs text-amber-100 flex items-start gap-2.5">
+          <i class="fa-solid fa-truck-ramp-box text-amber-300 text-base mt-0.5"></i>
+          <div>
+            <b>Ketentuan Pengiriman:</b> Layanan <b>Diantar Armada Toko</b> berlaku untuk pemesanan minimal <b id="info-min-qty">40</b> kotak hingga maksimal <b id="info-max-qty">200</b> kotak. Pemesanan di bawah minimal atau jumlah bebas dapat memilih <b>Ambil di Tempat</b>.
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-5 max-w-sm w-full">
+        <h3 class="font-semibold text-sm text-amber-300 mb-3"><i class="fa-solid fa-route mr-1.5"></i>Alur Pemesanan:</h3>
+        <ol class="text-xs space-y-2.5 text-emerald-50">
+          <li class="flex gap-2.5"><span class="bg-emerald-600 w-5 h-5 rounded-full flex items-center justify-center font-bold shrink-0">1</span> Pilih bibit tanaman & masukkan ke keranjang.</li>
+          <li class="flex gap-2.5"><span class="bg-emerald-600 w-5 h-5 rounded-full flex items-center justify-center font-bold shrink-0">2</span> Pilih metode <b>Diantar</b> (40–200 kotak) atau <b>Ambil di Tempat</b>.</li>
+          <li class="flex gap-2.5"><span class="bg-emerald-600 w-5 h-5 rounded-full flex items-center justify-center font-bold shrink-0">3</span> Klik <b>Pesan via WhatsApp</b> untuk terhubung dengan Admin.</li>
+          <li class="flex gap-2.5"><span class="bg-emerald-600 w-5 h-5 rounded-full flex items-center justify-center font-bold shrink-0">4</span> Update status pembayaran & pengiriman dikirim otomatis ke WA Anda.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filter & Pencarian -->
+  <main class="max-w-6xl mx-auto px-4 py-8 flex-1 w-full">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div class="flex flex-wrap gap-2" id="category-filters">
+        <!-- Kategori dirender dinamis sesuai input manual admin -->
+      </div>
+
+      <div class="relative w-full sm:w-64">
+        <i class="fa-solid fa-search absolute left-3.5 top-3 text-stone-400 text-sm"></i>
+        <input type="text" id="search-input" oninput="renderCatalog()" placeholder="Cari bibit durian, pule..." class="w-full pl-9 pr-4 py-2 bg-white border border-stone-200 rounded-xl text-sm focus:outline-none focus:border-emerald-600">
+      </div>
+    </div>
+
+    <!-- Grid Katalog -->
+    <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Rendered via JS -->
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-stone-200 py-6 px-4 text-center text-xs text-stone-500">
+    <p>&copy; 2026 <span id="footer-store-name">Kebun Nusantara</span> (Pemilik: <span id="footer-owner-name">-</span>). Konfirmasi resmi hanya melalui WhatsApp <span id="footer-store-wa" class="font-semibold">-</span>.</p>
+  </footer>
+
+  <!-- Slide-over Keranjang & Checkout -->
+  <div id="cart-drawer" class="fixed inset-0 bg-black/50 z-50 hidden justify-end">
+    <div class="bg-white w-full max-w-md h-full flex flex-col shadow-2xl">
+      <div class="p-4 border-b border-stone-200 flex items-center justify-between bg-emerald-950 text-white">
+        <h3 class="font-bold text-base"><i class="fa-solid fa-basket-shopping mr-2"></i>Keranjang Belanja</h3>
+        <button onclick="toggleCart()" class="text-stone-300 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+        <div id="cart-items-list" class="space-y-3">
+          <!-- Cart items -->
+        </div>
+
+        <div id="checkout-form-section" class="border-t border-stone-200 pt-4 hidden">
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-4 flex items-center justify-between text-xs">
+            <span class="text-emerald-900 font-medium">Total Bibit Dipesan:</span>
+            <span id="cart-total-qty" class="font-bold text-emerald-800 text-sm">0 Kotak</span>
+          </div>
+
+          <!-- Gerbang Wajib Login / Registrasi Sebelum Checkout -->
+          <div id="cart-login-notice" class="bg-amber-50 border border-amber-300 rounded-2xl p-4 mb-3 text-xs text-amber-950 space-y-3">
+            <div class="flex items-start gap-2.5">
+              <i class="fa-solid fa-user-lock text-amber-600 text-base mt-0.5"></i>
+              <div>
+                <h4 class="font-bold text-sm text-amber-950">Login / Registrasi Sebelum Checkout</h4>
+                <p class="text-[11px] text-amber-800 mt-0.5">Untuk melanjutkan pemesanan ke WhatsApp dan menyimpan daftar yang sudah dipesan, silakan masuk menggunakan <b>Username</b> atau daftar akun baru.</p>
+              </div>
+            </div>
+            <div>
+              <a href="auth.html?next=checkout" class="block w-full bg-emerald-700 hover:bg-emerald-800 text-white py-2.5 px-4 rounded-xl font-bold text-xs text-center shadow-sm transition">
+                <i class="fa-solid fa-right-to-bracket mr-1.5"></i>Lanjut ke Halaman Login Pembeli
+              </a>
+            </div>
+          </div>
+
+          <!-- Konten Form Checkout (Aktif setelah Login) -->
+          <div id="cart-authenticated-fields" class="hidden">
+            <div id="cart-logged-banner" class="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 mb-3 text-xs text-emerald-900 flex items-center justify-between">
+              <span><i class="fa-solid fa-user-check text-emerald-700 mr-1"></i>Login: <b>@<span id="cart-buyer-username"></span></b></span>
+              <button type="button" onclick="toggleCart(); openMyOrdersModal();" class="text-[11px] font-bold text-emerald-700 hover:underline">
+                Lihat Yang Sudah Dipesan &rarr;
+              </button>
+            </div>
+            <h4 class="font-bold text-sm text-stone-800 mb-3">Metode Pengiriman & Data Pembeli</h4>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-stone-600 mb-1">Metode Pengambilan / Pengiriman *</label>
+              <select id="cust-delivery-method" onchange="onDeliveryMethodChange()" class="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm bg-white font-medium focus:outline-none focus:border-emerald-600">
+                <option value="Diantar Armada Toko">Diantar Armada Toko (Min. 40 - Max. 200 Kotak)</option>
+                <option value="Ambil di Tempat">Ambil di Tempat (Kebun Toko)</option>
+              </select>
+              <div id="delivery-validation-msg" class="mt-1.5 text-[11px] rounded-lg p-2 hidden"></div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-stone-600 mb-1">Nama Lengkap / Instansi *</label>
+              <input type="text" id="cust-name" placeholder="Contoh: Andi Wijaya" class="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:border-emerald-600">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-stone-600 mb-1">Nomor WhatsApp Aktif * (Untuk Update Status)</label>
+              <input type="tel" id="cust-phone" placeholder="Contoh: 081234567890" class="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:border-emerald-600">
+            </div>
+            <div id="address-field-wrapper">
+              <label class="block text-xs font-medium text-stone-600 mb-1">Alamat Lengkap Tujuan Pengantaran *</label>
+              <textarea id="cust-address" rows="2" placeholder="Jalan, Desa/Kelurahan, Kecamatan, Kabupaten/Kota" class="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:outline-none focus:border-emerald-600"></textarea>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="cart-footer" class="p-4 border-t border-stone-200 bg-stone-50 hidden">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-sm text-stone-600">Total Harga Bibit:</span>
+          <span id="cart-total" class="text-lg font-bold text-emerald-800">Rp 0</span>
+        </div>
+        <button id="btn-checkout-wa" onclick="processCheckout()" class="w-full bg-green-600 hover:bg-green-700 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition">
+          <i class="fa-brands fa-whatsapp text-xl"></i>
+          <span>Pesan & Bayar via WhatsApp</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Simulasi Redirect WhatsApp Pembeli -->
+  <div id="wa-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+      <div class="bg-green-600 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fa-brands fa-whatsapp text-2xl"></i>
+          <div>
+            <h3 class="font-bold text-sm">Pesanan Berhasil Dibuat!</h3>
+            <p class="text-xs text-green-100">Tujuan: <span id="modal-store-wa"></span></p>
+          </div>
+        </div>
+        <button onclick="closeWaModal()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-5">
+        <p class="text-xs text-stone-600 mb-3">
+          Sistem telah menyimpan pesanan Anda dengan ID <b id="modal-order-id" class="text-emerald-800"></b>. Pesan berikut siap dikirim ke WhatsApp toko:
+        </p>
+        <div id="wa-preview-text" class="bg-[#e5ddd5] p-3.5 rounded-xl text-xs font-mono whitespace-pre-wrap text-stone-800 border border-stone-300 max-h-60 overflow-y-auto"></div>
+        <div class="mt-4 flex flex-col gap-2">
+          <a id="wa-real-link" href="#" target="_blank" class="w-full bg-green-600 hover:bg-green-700 text-white text-center font-semibold py-2.5 rounded-xl text-sm transition">
+            <i class="fa-brands fa-whatsapp mr-1.5"></i>Kirim ke WhatsApp Sekarang
+          </a>
+          <button onclick="closeWaModal(); openMyOrdersModal();" class="w-full bg-amber-400 hover:bg-amber-500 text-emerald-950 font-bold py-2.5 rounded-xl text-xs transition">
+            <i class="fa-solid fa-receipt mr-1.5"></i>Lihat Yang Sudah Dipesan
+          </button>
+          <button onclick="closeWaModal()" class="w-full bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium py-2 rounded-xl text-xs transition">
+            Tutup Pratinjau
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Cek Status Pesanan Pembeli -->
+  <div id="track-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-base text-stone-800"><i class="fa-solid fa-truck-fast text-emerald-700 mr-2"></i>Cek Status Pesanan</h3>
+        <button onclick="closeTrackModal()" class="text-stone-400 hover:text-stone-700"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="track-input" placeholder="Masukkan ID Pesanan (misal: BIBIT-101)" class="flex-1 px-3 py-2 border border-stone-300 rounded-xl text-sm uppercase focus:outline-none focus:border-emerald-600">
+        <button onclick="searchOrder()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-xl text-sm font-semibold">Cari</button>
+      </div>
+      <div id="track-result" class="text-sm">
+        <p class="text-xs text-stone-500 text-center py-4">Masukkan kode pesanan Anda untuk melihat status pembayaran dan pengiriman.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Login & Registrasi Pembeli -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+      <div class="bg-emerald-900 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-user-circle text-xl text-amber-300"></i>
+          <h3 id="auth-modal-title" class="font-bold text-sm">Masuk Akun Pembeli</h3>
+        </div>
+        <button onclick="closeAuthModal()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Tab Switch Login / Registrasi -->
+      <div class="grid grid-cols-2 border-b border-stone-200 bg-stone-50 text-xs font-bold">
+        <button id="auth-tab-login" onclick="switchAuthTab('login')" class="py-3 text-emerald-800 border-b-2 border-emerald-700 bg-white">
+          Login Username
+        </button>
+        <button id="auth-tab-register" onclick="switchAuthTab('register')" class="py-3 text-stone-500 hover:text-stone-800">
+          Daftar Akun Baru
+        </button>
+      </div>
+
+      <div class="p-5">
+        <!-- Form Login -->
+        <form id="buyer-login-form" onsubmit="handleBuyerLogin(event)" class="space-y-3 text-sm">
+          <div>
+            <label class="block text-xs font-semibold text-stone-700 mb-1">Username *</label>
+            <input type="text" id="login-username" required placeholder="Masukkan username Anda (contoh: budi)" class="w-full px-3.5 py-2 border border-stone-300 rounded-xl focus:outline-none focus:border-emerald-600">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-stone-700 mb-1">Password *</label>
+            <input type="password" id="login-password" required placeholder="Masukkan password (contoh: 123)" class="w-full px-3.5 py-2 border border-stone-300 rounded-xl focus:outline-none focus:border-emerald-600">
+          </div>
+          <div id="login-error-msg" class="hidden text-xs text-red-600 bg-red-50 border border-red-200 p-2.5 rounded-xl"></div>
+          <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-xl transition">
+            Masuk Sekarang
+          </button>
+          <p class="text-[11px] text-stone-500 text-center">Akun demo bawaan: username <b>budi</b> / password <b>123</b></p>
+        </form>
+
+        <!-- Form Registrasi -->
+        <form id="buyer-register-form" onsubmit="handleBuyerRegister(event)" class="hidden space-y-3 text-sm">
+          <div>
+            <label class="block text-xs font-semibold text-stone-700 mb-1">Username * (Untuk Login)</label>
+            <input type="text" id="reg-username" required placeholder="Contoh: andi_kebun" class="w-full px-3.5 py-2 border border-stone-300 rounded-xl focus:outline-none focus:border-emerald-600">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-stone-700 mb-1">Password *</label>
+            <input type="password" id="reg-password" required placeholder="Buat password" class="w-full px-3.5 py-2 border border-stone-300 rounded-xl focus:outline-none focus:border-emerald-600">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-stone-700 mb-1">Nama Lengkap / Instansi *</label>
+            <input type="text" id="reg-fullname" required placeholder="Contoh: Andi Wijaya" class="w-full px-3.5 py-2 border border-stone-300 rounded-xl focus:outline-none focus:border-emerald-600">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-stone-700 mb-1">Nomor WhatsApp Aktif *</label>
+            <input type="tel" id="reg-phone" required placeholder="Contoh: 081234567890" class="w-full px-3.5 py-2 border border-stone-300 rounded-xl focus:outline-none focus:border-emerald-600">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-stone-700 mb-1">Alamat Lengkap Pengiriman *</label>
+            <textarea id="reg-address" rows="2" required placeholder="Jalan, Desa/Kelurahan, Kecamatan, Kota/Kabupaten" class="w-full px-3.5 py-2 border border-stone-300 rounded-xl focus:outline-none focus:border-emerald-600"></textarea>
+          </div>
+          <div id="reg-error-msg" class="hidden text-xs text-red-600 bg-red-50 border border-red-200 p-2.5 rounded-xl"></div>
+          <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-xl transition">
+            Daftar & Masuk Otomatis
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Riwayat Pesanan Pembeli Login -->
+  <div id="my-orders-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
+      <div class="bg-emerald-900 text-white p-4 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-sm"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i>Daftar Yang Sudah Dipesan (@<span id="my-orders-username"></span>)</h3>
+          <p class="text-[11px] text-emerald-200" id="my-orders-fullname"></p>
+        </div>
+        <button onclick="closeMyOrdersModal()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="my-orders-list" class="p-4 max-h-[65vh] overflow-y-auto space-y-3 text-xs">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    let currentCategory = 'Semua';
+    let cart = getSavedCart();
+
+    function renderCategoryFilters() {
+      const products = getProducts();
+      const uniqueCats = [...new Set(products.map(p => (p.category || '').trim()).filter(Boolean))];
+      if (currentCategory !== 'Semua' && !uniqueCats.includes(currentCategory)) {
+        currentCategory = 'Semua';
+      }
+      const container = document.getElementById('category-filters');
+      const allCats = ['Semua', ...uniqueCats];
+      container.innerHTML = allCats.map(cat => {
+        const active = currentCategory === cat;
+        const label = cat === 'Semua' ? 'Semua Bibit' : cat;
+        const cls = active
+          ? 'cat-btn active bg-emerald-700 text-white px-4 py-1.5 rounded-full text-sm font-medium transition'
+          : 'cat-btn bg-white text-stone-600 border border-stone-200 hover:border-emerald-600 px-4 py-1.5 rounded-full text-sm font-medium transition';
+        return `<button onclick="setCategory('${cat.replace(/'/g, "\\'")}')" class="${cls}">${label}</button>`;
+      }).join('');
+    }
+
+
+    // --- REGISTRASI & LOGIN PEMBELI SESUAI USERNAME ---
+    function updateBuyerAuthUI() {
+      const buyer = getCurrentBuyer();
+      const guestEl = document.getElementById('buyer-guest-actions');
+      const loggedEl = document.getElementById('buyer-logged-actions');
+      const loginNotice = document.getElementById('cart-login-notice');
+      const authFields = document.getElementById('cart-authenticated-fields');
+      const cartFooter = document.getElementById('cart-footer');
+
+      if (buyer) {
+        guestEl.classList.add('hidden');
+        loggedEl.classList.remove('hidden');
+        loggedEl.classList.add('flex');
+        document.getElementById('nav-buyer-username').textContent = buyer.username;
+        const myOrdersCount = getOrders().filter(o => (o.buyerUsername || '').toLowerCase() === buyer.username.toLowerCase()).length;
+        const countBadge = document.getElementById('nav-my-orders-count');
+        if (countBadge) countBadge.textContent = myOrdersCount;
+
+        if (loginNotice) loginNotice.classList.add('hidden');
+        if (authFields) authFields.classList.remove('hidden');
+        if (cartFooter && cart.length > 0) cartFooter.classList.remove('hidden');
+        document.getElementById('cart-buyer-username').textContent = buyer.username;
+
+        // Isi otomatis form checkout
+        const nameInput = document.getElementById('cust-name');
+        const phoneInput = document.getElementById('cust-phone');
+        const addrInput = document.getElementById('cust-address');
+        if (nameInput && !nameInput.value) nameInput.value = buyer.fullName;
+        if (phoneInput && !phoneInput.value) phoneInput.value = buyer.phone;
+        if (addrInput && !addrInput.value) addrInput.value = buyer.address;
+      } else {
+        guestEl.classList.remove('hidden');
+        loggedEl.classList.add('hidden');
+        loggedEl.classList.remove('flex');
+
+        if (loginNotice) loginNotice.classList.remove('hidden');
+        if (authFields) authFields.classList.add('hidden');
+        if (cartFooter) cartFooter.classList.add('hidden');
+      }
+    }
+
+    function openAuthModal(tab = 'login') {
+      const modal = document.getElementById('auth-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      switchAuthTab(tab);
+    }
+
+    function closeAuthModal() {
+      const modal = document.getElementById('auth-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function switchAuthTab(tab) {
+      const loginForm = document.getElementById('buyer-login-form');
+      const regForm = document.getElementById('buyer-register-form');
+      const tabLogin = document.getElementById('auth-tab-login');
+      const tabReg = document.getElementById('auth-tab-register');
+      const titleEl = document.getElementById('auth-modal-title');
+
+      document.getElementById('login-error-msg').classList.add('hidden');
+      document.getElementById('reg-error-msg').classList.add('hidden');
+
+      if (tab === 'login') {
+        titleEl.textContent = 'Masuk Akun Pembeli';
+        loginForm.classList.remove('hidden');
+        regForm.classList.add('hidden');
+        tabLogin.className = 'py-3 text-emerald-800 border-b-2 border-emerald-700 bg-white';
+        tabReg.className = 'py-3 text-stone-500 hover:text-stone-800';
+      } else {
+        titleEl.textContent = 'Registrasi Pembeli Baru';
+        loginForm.classList.add('hidden');
+        regForm.classList.remove('hidden');
+        tabReg.className = 'py-3 text-emerald-800 border-b-2 border-emerald-700 bg-white';
+        tabLogin.className = 'py-3 text-stone-500 hover:text-stone-800';
+      }
+    }
+
+    function handleBuyerLogin(e) {
+      e.preventDefault();
+      const usernameInput = document.getElementById('login-username').value.trim().toLowerCase();
+      const passwordInput = document.getElementById('login-password').value;
+      const errEl = document.getElementById('login-error-msg');
+
+      const buyers = getBuyers();
+      const found = buyers.find(b => b.username.toLowerCase() === usernameInput && b.password === passwordInput);
+
+      if (!found) {
+        errEl.textContent = 'Username atau password salah. Silakan periksa kembali atau daftar akun baru.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      setCurrentBuyer(found);
+      // Reset field agar terisi data buyer yang baru login
+      document.getElementById('cust-name').value = found.fullName;
+      document.getElementById('cust-phone').value = found.phone;
+      document.getElementById('cust-address').value = found.address;
+
+      updateBuyerAuthUI();
+      closeAuthModal();
+    }
+
+    function handleBuyerRegister(e) {
+      e.preventDefault();
+      const username = document.getElementById('reg-username').value.trim().toLowerCase().replace(/\s+/g, '_');
+      const password = document.getElementById('reg-password').value;
+      const fullName = document.getElementById('reg-fullname').value.trim();
+      const phone = normalizePhone(document.getElementById('reg-phone').value.trim());
+      const address = document.getElementById('reg-address').value.trim();
+      const errEl = document.getElementById('reg-error-msg');
+
+      if (!username || username.length < 3) {
+        errEl.textContent = 'Username minimal 3 karakter.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      const buyers = getBuyers();
+      if (buyers.some(b => b.username.toLowerCase() === username)) {
+        errEl.textContent = `Username "${username}" sudah digunakan. Silakan pilih username lain.`;
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      const newBuyer = { username, password, fullName, phone, address };
+      buyers.push(newBuyer);
+      saveBuyers(buyers);
+      setCurrentBuyer(newBuyer);
+
+      document.getElementById('cust-name').value = newBuyer.fullName;
+      document.getElementById('cust-phone').value = newBuyer.phone;
+      document.getElementById('cust-address').value = newBuyer.address;
+
+      updateBuyerAuthUI();
+      closeAuthModal();
+      alert(`Registrasi berhasil! Selamat datang, @${newBuyer.username}.`);
+    }
+
+    function logoutBuyer() {
+      if (!confirm('Keluar dari akun pembeli?')) return;
+      setCurrentBuyer(null);
+      document.getElementById('cust-name').value = '';
+      document.getElementById('cust-phone').value = '';
+      document.getElementById('cust-address').value = '';
+      updateBuyerAuthUI();
+    }
+
+    function openMyOrdersModal() {
+      const buyer = getCurrentBuyer();
+      if (!buyer) return;
+
+      document.getElementById('my-orders-username').textContent = buyer.username;
+      document.getElementById('my-orders-fullname').textContent = `${buyer.fullName} • +${buyer.phone}`;
+
+      const orders = getOrders().filter(o => (o.buyerUsername || '').toLowerCase() === buyer.username.toLowerCase());
+      const listEl = document.getElementById('my-orders-list');
+
+      if (orders.length === 0) {
+        listEl.innerHTML = `<div class="text-center py-8 text-stone-400">Belum ada pesanan pada akun <b>@${buyer.username}</b>.</div>`;
+      } else {
+        listEl.innerHTML = orders.map(o => {
+          let badgeColor = 'bg-amber-100 text-amber-800';
+          if (o.status === 'Diproses') badgeColor = 'bg-blue-100 text-blue-800';
+          if (o.status === 'Dikirim') badgeColor = 'bg-emerald-100 text-emerald-800';
+          if (o.status === 'Selesai') badgeColor = 'bg-stone-200 text-stone-800';
+          if (o.status === 'Dibatalkan') badgeColor = 'bg-red-100 text-red-800';
+
+          const itemsHtml = (o.items || []).map(it => `<li>${it.name} (${formatNumber(it.qty)} kotak) - ${formatRupiah(it.price * it.qty)}</li>`).join('');
+          return `
+            <div class="bg-stone-50 border border-stone-200 rounded-xl p-3.5 space-y-2">
+              <div class="flex items-center justify-between border-b border-stone-200 pb-2">
+                <div>
+                  <span class="font-bold text-sm text-emerald-950">#${o.id}</span>
+                  <span class="text-[11px] text-stone-500 ml-1.5">${o.createdAt}</span>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full font-bold ${badgeColor} text-[11px]">${o.status}</span>
+              </div>
+              <ul class="list-disc list-inside text-stone-700 space-y-0.5">${itemsHtml}</ul>
+              <div class="pt-1.5 border-t border-stone-200/70 flex flex-wrap justify-between gap-2 text-[11px]">
+                <span><b>Metode:</b> ${o.deliveryMethod || o.courier}</span>
+                <span class="font-bold text-emerald-800 text-xs">Total (${formatNumber(o.totalQty || 0)} kotak): ${formatRupiah(o.total)}</span>
+              </div>
+              ${o.resi ? `<p class="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg text-[11px]"><b>No. Surat Jalan/Resi:</b> ${o.resi}</p>` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      const modal = document.getElementById('my-orders-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeMyOrdersModal() {
+      const modal = document.getElementById('my-orders-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function renderStoreIdentity() {
+      const settings = getSettings();
+      document.title = `${settings.storeName} - Pusat Bibit Tanaman Unggul`;
+      document.getElementById('header-store-name').textContent = settings.storeName;
+      document.getElementById('header-owner-name').textContent = settings.ownerName || 'Belum diatur';
+      document.getElementById('hero-store-wa').textContent = settings.storeWa ? '+' + settings.storeWa : 'Belum diatur';
+      document.getElementById('footer-store-name').textContent = settings.storeName;
+      document.getElementById('footer-owner-name').textContent = settings.ownerName || '-';
+      document.getElementById('footer-store-wa').textContent = settings.storeWa ? '+' + settings.storeWa : '-';
+      document.getElementById('info-min-qty').textContent = formatNumber(settings.minDeliveryQty);
+      document.getElementById('info-max-qty').textContent = formatNumber(settings.maxDeliveryQty);
+
+      const methodSelect = document.getElementById('cust-delivery-method');
+      if (methodSelect) {
+        methodSelect.options[0].text = `Diantar Armada Toko (Min. ${formatNumber(settings.minDeliveryQty)} - Max. ${formatNumber(settings.maxDeliveryQty)} Kotak)`;
+      }
+    }
+
+    function setCategory(cat) {
+      currentCategory = cat;
+      renderCategoryFilters();
+      renderCatalog();
+    }
+
+    function renderCatalog() {
+      const products = getProducts();
+      const keyword = document.getElementById('search-input').value.toLowerCase();
+      const grid = document.getElementById('catalog-grid');
+
+      const filtered = products.filter(p => {
+        const matchCat = currentCategory === 'Semua' || p.category === currentCategory;
+        const matchKey = p.name.toLowerCase().includes(keyword) || p.desc.toLowerCase().includes(keyword);
+        return matchCat && matchKey;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-12 text-stone-500">Bibit tanaman tidak ditemukan.</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(p => {
+        const outOfStock = p.stock <= 0;
+        return `
+          <div class="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
+            <div class="relative h-48 bg-stone-200">
+              <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover ${outOfStock ? 'grayscale opacity-60' : ''}">
+              <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-emerald-900 text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm">
+                ${p.category}
+              </span>
+              <span class="absolute top-3 right-3 ${outOfStock ? 'bg-red-600 text-white' : 'bg-stone-900/80 text-white'} text-xs font-medium px-2.5 py-1 rounded-lg">
+                ${outOfStock ? 'Stok Habis' : 'Stok: ' + formatNumber(p.stock) + ' kotak'}
+              </span>
+            </div>
+            <div class="p-4 flex-1 flex flex-col">
+              <div class="text-xs text-emerald-700 font-medium mb-1"><i class="fa-solid fa-ruler-vertical mr-1"></i>${p.height}</div>
+              <h3 class="font-bold text-stone-900 text-base mb-1.5">${p.name}</h3>
+              <p class="text-xs text-stone-500 line-clamp-2 mb-4 flex-1">${p.desc}</p>
+              <div class="flex items-center justify-between pt-3 border-t border-stone-100">
+                <div>
+                  <span class="text-[11px] text-stone-400 block">Harga / Kotak</span>
+                  <span class="font-bold text-emerald-800 text-base">${formatRupiah(p.price)}</span>
+                </div>
+                <button onclick="addToCart('${p.id}')" ${outOfStock ? 'disabled' : ''} class="${outOfStock ? 'bg-stone-200 text-stone-400 cursor-not-allowed' : 'bg-emerald-700 hover:bg-emerald-800 text-white'} px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+                  <i class="fa-solid fa-plus"></i> Keranjang
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function addToCart(productId) {
+      const products = getProducts();
+      const product = products.find(p => p.id === productId);
+      if (!product || product.stock <= 0) return;
+
+      const existing = cart.find(item => item.id === productId);
+      if (existing) {
+        if (existing.qty >= product.stock) {
+          alert('Jumlah melebihi sisa stok yang tersedia (' + formatNumber(product.stock) + ' kotak)');
+          return;
+        }
+        existing.qty += 1;
+      } else {
+        cart.push({ id: product.id, name: product.name, price: product.price, qty: 1 });
+      }
+      updateCartUI();
+    }
+
+    function updateQty(productId, delta) {
+      const products = getProducts();
+      const product = products.find(p => p.id === productId);
+      const item = cart.find(i => i.id === productId);
+      if (!item) return;
+
+      const newQty = item.qty + delta;
+      if (newQty <= 0) {
+        cart = cart.filter(i => i.id !== productId);
+      } else if (product && newQty > product.stock) {
+        alert('Stok maksimal hanya ' + formatNumber(product.stock) + ' kotak');
+        return;
+      } else {
+        item.qty = newQty;
+      }
+      updateCartUI();
+    }
+
+    function validateDeliveryRules() {
+      const settings = getSettings();
+      const totalQty = cart.reduce((sum, i) => sum + i.qty, 0);
+      const method = document.getElementById('cust-delivery-method').value;
+      const msgEl = document.getElementById('delivery-validation-msg');
+      const btnEl = document.getElementById('btn-checkout-wa');
+      const addrWrapper = document.getElementById('address-field-wrapper');
+
+      if (method === 'Ambil di Tempat') {
+        addrWrapper.classList.add('hidden');
+        msgEl.className = 'mt-1.5 text-[11px] rounded-lg p-2 bg-emerald-50 text-emerald-800 border border-emerald-200 block';
+        msgEl.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> Pesanan <b>${formatNumber(totalQty)} kotak</b> siap diambil langsung di kebun tanpa batas minimal.`;
+        btnEl.disabled = false;
+        return true;
+      } else {
+        addrWrapper.classList.remove('hidden');
+        if (totalQty < settings.minDeliveryQty) {
+          msgEl.className = 'mt-1.5 text-[11px] rounded-lg p-2 bg-red-50 text-red-700 border border-red-200 block';
+          msgEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> <b>Belum memenuhi syarat antar:</b> Minimal pengantaran adalah <b>${formatNumber(settings.minDeliveryQty)} kotak</b> (kurang ${formatNumber(settings.minDeliveryQty - totalQty)} kotak lagi). Silakan tambah pesanan atau pilih <b>Ambil di Tempat</b>.`;
+          btnEl.disabled = true;
+          return false;
+        } else if (totalQty > settings.maxDeliveryQty) {
+          msgEl.className = 'mt-1.5 text-[11px] rounded-lg p-2 bg-red-50 text-red-700 border border-red-200 block';
+          msgEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> <b>Melebihi batas pengantaran:</b> Maksimal pengantaran per transaksi adalah <b>${formatNumber(settings.maxDeliveryQty)} kotak</b> (kelebihan ${formatNumber(totalQty - settings.maxDeliveryQty)} kotak).`;
+          btnEl.disabled = true;
+          return false;
+        } else {
+          msgEl.className = 'mt-1.5 text-[11px] rounded-lg p-2 bg-emerald-50 text-emerald-800 border border-emerald-200 block';
+          msgEl.innerHTML = `<i class="fa-solid fa-truck mr-1"></i> Memenuhi syarat pengantaran (${formatNumber(settings.minDeliveryQty)} - ${formatNumber(settings.maxDeliveryQty)} kotak).`;
+          btnEl.disabled = false;
+          return true;
+        }
+      }
+    }
+
+    function onDeliveryMethodChange() {
+      validateDeliveryRules();
+      updateBuyerAuthUI();
+    }
+
+    function updateCartUI() {
+      const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
+      saveCartToStorage(cart);
+      document.getElementById('cart-badge').textContent = formatNumber(totalItems);
+
+      const listEl = document.getElementById('cart-items-list');
+      const formEl = document.getElementById('checkout-form-section');
+      const footerEl = document.getElementById('cart-footer');
+
+      if (cart.length === 0) {
+        listEl.innerHTML = `<div class="text-center py-10 text-stone-400 text-sm"><i class="fa-solid fa-basket-shopping text-3xl mb-2 block"></i>Keranjang belanja masih kosong.</div>`;
+        formEl.classList.add('hidden');
+        footerEl.classList.add('hidden');
+        return;
+      }
+
+      formEl.classList.remove('hidden');
+      footerEl.classList.remove('hidden');
+
+      let totalAmount = 0;
+      listEl.innerHTML = cart.map(item => {
+        const subtotal = item.price * item.qty;
+        totalAmount += subtotal;
+        return `
+          <div class="flex items-center justify-between bg-stone-50 p-3 rounded-xl border border-stone-200">
+            <div class="pr-2">
+              <h4 class="font-semibold text-xs text-stone-800">${item.name}</h4>
+              <span class="text-xs text-emerald-700 font-bold">${formatRupiah(item.price)} / kotak</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="updateQty('${item.id}', -1)" class="w-7 h-7 rounded-lg bg-white border border-stone-300 text-xs font-bold hover:bg-stone-100">-</button>
+              <span class="text-xs font-bold min-w-[24px] text-center">${item.qty}</span>
+              <button onclick="updateQty('${item.id}', 1)" class="w-7 h-7 rounded-lg bg-white border border-stone-300 text-xs font-bold hover:bg-stone-100">+</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('cart-total-qty').textContent = formatNumber(totalItems) + ' Kotak';
+      document.getElementById('cart-total').textContent = formatRupiah(totalAmount);
+      validateDeliveryRules();
+      updateBuyerAuthUI();
+    }
+
+    function toggleCart() {
+      const drawer = document.getElementById('cart-drawer');
+      drawer.classList.toggle('hidden');
+      drawer.classList.toggle('flex');
+      if (!drawer.classList.contains('hidden')) {
+        updateCartUI();
+      }
+    }
+
+    function processCheckout() {
+      const currentBuyer = getCurrentBuyer();
+      if (!currentBuyer) {
+        saveCartToStorage(cart);
+        window.location.href = 'auth.html?next=checkout';
+        return;
+      }
+      if (!validateDeliveryRules()) return;
+
+      const settings = getSettings();
+      if (!settings.storeWa) {
+        alert('Nomor WhatsApp toko belum dikonfigurasi oleh Admin.');
+        return;
+      }
+
+      const name = document.getElementById('cust-name').value.trim();
+      const phoneRaw = document.getElementById('cust-phone').value.trim();
+      const deliveryMethod = document.getElementById('cust-delivery-method').value;
+      const addressInput = document.getElementById('cust-address').value.trim();
+      const finalAddress = deliveryMethod === 'Ambil di Tempat' ? 'Ambil Langsung di Kebun Toko' : addressInput;
+
+      if (!name || !phoneRaw || (deliveryMethod === 'Diantar Armada Toko' && !addressInput)) {
+        alert('Mohon lengkapi Nama, Nomor WhatsApp, dan Alamat Tujuan Pengantaran.');
+        return;
+      }
+
+      const phone = normalizePhone(phoneRaw);
+      const orders = getOrders();
+      const orderNum = 101 + orders.length;
+      const orderId = 'BIBIT-' + orderNum;
+      const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const totalQty = cart.reduce((sum, i) => sum + i.qty, 0);
+
+      const now = new Date();
+      const timeStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' + now.toTimeString().slice(0,5);
+
+      const newOrder = {
+        id: orderId,
+        buyerUsername: currentBuyer.username,
+        customerName: name,
+        phone: phone,
+        address: finalAddress,
+        deliveryMethod: deliveryMethod,
+        courier: deliveryMethod === 'Ambil di Tempat' ? 'Ambil di Tempat' : 'Armada Toko',
+        resi: '',
+        items: [...cart],
+        totalQty: totalQty,
+        total: total,
+        status: 'Menunggu Pembayaran',
+        stockDeducted: false,
+        orderDate: getTodayISO(),
+        createdAt: timeStr
+      };
+
+      orders.unshift(newOrder);
+      saveOrders(orders);
+
+      const itemsText = cart.map((i, idx) => `${idx + 1}. ${i.name} (${formatNumber(i.qty)} kotak) = ${formatRupiah(i.price * i.qty)}`).join('\n');
+      const waMessage = `Halo *${settings.storeName}* (Up. ${settings.ownerName}), saya ingin konfirmasi pesanan bibit tanaman:\n\n` +
+        `*ID Pesanan:* #${orderId}\n` +
+        `*Username Akun:* @${currentBuyer.username}\n` +
+        `*Nama:* ${name}\n` +
+        `*No. WA:* ${phone}\n` +
+        `*Metode:* ${deliveryMethod}\n` +
+        `*Alamat:* ${finalAddress}\n\n` +
+        `*Daftar Bibit (${formatNumber(totalQty)} Kotak):*\n${itemsText}\n\n` +
+        `*Total Tagihan:* ${formatRupiah(total)}\n` +
+        `Mohon info rekening pembayaran dan jadwal prosesnya. Terima kasih!`;
+
+      document.getElementById('modal-order-id').textContent = '#' + orderId;
+      document.getElementById('modal-store-wa').textContent = '+' + settings.storeWa;
+      document.getElementById('wa-preview-text').textContent = waMessage;
+      document.getElementById('wa-real-link').href = `https://wa.me/${settings.storeWa}?text=${encodeURIComponent(waMessage)}`;
+
+      cart = [];
+      updateCartUI();
+      toggleCart();
+
+      const waModal = document.getElementById('wa-modal');
+      waModal.classList.remove('hidden');
+      waModal.classList.add('flex');
+    }
+
+    function closeWaModal() {
+      const waModal = document.getElementById('wa-modal');
+      waModal.classList.add('hidden');
+      waModal.classList.remove('flex');
+    }
+
+    function openTrackModal() {
+      const modal = document.getElementById('track-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeTrackModal() {
+      const modal = document.getElementById('track-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function searchOrder() {
+      const query = document.getElementById('track-input').value.trim().toUpperCase().replace('#', '');
+      const orders = getOrders();
+      const order = orders.find(o => o.id === query);
+      const resEl = document.getElementById('track-result');
+
+      if (!order) {
+        resEl.innerHTML = `<div class="p-3 bg-red-50 text-red-700 rounded-xl text-xs">Pesanan dengan ID <b>#${query}</b> tidak ditemukan.</div>`;
+        return;
+      }
+
+      resEl.innerHTML = `
+        <div class="bg-stone-50 border border-stone-200 rounded-xl p-4 space-y-2 text-xs">
+          <div class="flex justify-between items-center border-b border-stone-200 pb-2">
+            <span class="font-bold text-sm text-emerald-900">#${order.id}</span>
+            <span class="px-2.5 py-1 rounded-full font-semibold bg-emerald-100 text-emerald-800">${order.status}</span>
+          </div>
+          <p><b>Pemesan:</b> ${order.customerName}</p>
+          <p><b>Jumlah:</b> ${formatNumber(order.totalQty || 0)} Kotak</p>
+          <p><b>Metode:</b> ${order.deliveryMethod || order.courier} ${order.resi ? `(No. Jalan/Resi: <b>${order.resi}</b>)` : ''}</p>
+          <p><b>Total:</b> ${formatRupiah(order.total)}</p>
+        </div>
+      `;
+    }
+
+    window.addEventListener('storage', () => {
+      renderStoreIdentity();
+      renderCategoryFilters();
+      renderCatalog();
+      updateBuyerAuthUI();
+    });
+
+    initStore();
+    updateBuyerAuthUI();
+    renderStoreIdentity();
+    renderCategoryFilters();
+    renderCatalog();
+    updateCartUI();
+
+    if (new URLSearchParams(window.location.search).get('openCart') === '1' && cart.length > 0) {
+      toggleCart();
+      window.history.replaceState({}, '', 'index.html');
+    }
+  </script>
+</body>
+</html>

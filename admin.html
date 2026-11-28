@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Kebun Nusantara</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+  <!-- Layar Login Admin Sederhana -->
+  <div id="login-screen" class="fixed inset-0 bg-slate-900/95 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+      <div class="w-12 h-12 bg-emerald-700 text-white rounded-xl flex items-center justify-center text-xl mb-4 mx-auto">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+      <h2 class="text-xl font-bold text-center text-slate-900">Login Admin Toko</h2>
+      <p class="text-xs text-slate-500 text-center mt-1 mb-5">Kelola profil toko, stok bibit, pesanan & notifikasi WhatsApp</p>
+      <form onsubmit="handleLogin(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Username</label>
+          <input type="text" id="admin-user" value="admin" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">PIN / Password</label>
+          <input type="password" id="admin-pass" value="1234" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm">
+        </div>
+        <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-xl text-sm transition">
+          Masuk ke Dashboard
+        </button>
+      </form>
+      <div class="mt-4 pt-3 border-t border-slate-100 text-center">
+        <a href="index.html" class="text-xs text-emerald-700 hover:underline">&larr; Kembali ke Halaman Pembeli</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Utama -->
+  <div id="admin-app" class="hidden">
+    <!-- Topbar -->
+    <header class="bg-slate-900 text-white sticky top-0 z-30 shadow">
+      <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 bg-emerald-600 rounded-lg flex items-center justify-center">
+            <i class="fa-solid fa-leaf"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-base leading-tight">Dashboard Admin <span id="topbar-store-name">Kebun Nusantara</span></h1>
+            <p class="text-[11px] text-slate-400">Pemilik: <span id="topbar-owner-name" class="text-emerald-400">-</span> • WA Toko: <span id="topbar-store-wa" class="text-emerald-400">-</span></p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <a href="index.html" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+            <i class="fa-solid fa-store mr-1.5"></i>Buka Toko (Pembeli)
+          </a>
+          <button onclick="resetDemoData()" class="bg-slate-800 hover:bg-red-900/50 text-slate-300 hover:text-red-300 px-3 py-1.5 rounded-lg text-xs transition" title="Reset Data Awal">
+            <i class="fa-solid fa-rotate-right mr-1"></i>Reset Demo
+          </button>
+          <button onclick="logoutAdmin()" class="text-xs text-slate-400 hover:text-white px-2">Keluar</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6">
+      <!-- Ringkasan Statistik -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <span class="text-xs text-slate-500">Total Pesanan</span>
+          <div id="stat-orders" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <span class="text-xs text-slate-500">Perlu Verifikasi Bayar</span>
+          <div id="stat-pending" class="text-2xl font-bold text-amber-600 mt-1">0</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <span class="text-xs text-slate-500">Omzet Terkonfirmasi</span>
+          <div id="stat-revenue" class="text-2xl font-bold text-emerald-700 mt-1">Rp 0</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <span class="text-xs text-slate-500">Notifikasi WA Terkirim</span>
+          <div id="stat-wa" class="text-2xl font-bold text-green-600 mt-1">0</div>
+        </div>
+      </div>
+
+      <!-- Tab Navigasi -->
+      <div class="flex flex-wrap gap-2 mb-5 border-b border-slate-200 pb-3">
+        <button onclick="switchTab('orders')" id="tab-btn-orders" class="bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
+          <i class="fa-solid fa-receipt mr-1.5"></i>Kelola Pesanan Masuk
+        </button>
+        <button onclick="switchTab('reports')" id="tab-btn-reports" class="bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-sm font-semibold transition">
+          <i class="fa-solid fa-chart-line mr-1.5"></i>Laporan Harian, Bulanan & Tahunan
+        </button>
+        <button onclick="switchTab('stock')" id="tab-btn-stock" class="bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-sm font-semibold transition">
+          <i class="fa-solid fa-boxes-stacked mr-1.5"></i>Kelola Stok Bibit (Update & Hapus)
+        </button>
+        <button onclick="switchTab('settings')" id="tab-btn-settings" class="bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-sm font-semibold transition">
+          <i class="fa-solid fa-user-gear mr-1.5"></i>Profil Pemilik, WA Toko & Pengiriman
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Kolom Kiri (2/3) -->
+        <div class="lg:col-span-2">
+          <!-- Panel 1: Kelola Pesanan -->
+          <div id="panel-orders" class="space-y-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div class="relative flex-1">
+                <i class="fa-solid fa-at absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                <input type="text" id="admin-search-username" oninput="renderOrders()" placeholder="Cari pesanan sesuai username pembeli (contoh: budi, siti)..." class="w-full pl-9 pr-8 py-2 border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-emerald-600">
+                <button type="button" onclick="document.getElementById('admin-search-username').value=''; renderOrders();" title="Reset Pencarian" class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-700 text-xs">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+              <select id="admin-filter-status" onchange="renderOrders()" class="px-3 py-2 border border-slate-300 rounded-xl text-xs font-semibold bg-white focus:outline-none focus:border-emerald-600">
+                <option value="Semua">Semua Status Pesanan</option>
+                <option value="Menunggu Pembayaran">Menunggu Pembayaran</option>
+                <option value="Diproses">Diproses</option>
+                <option value="Dikirim">Dikirim</option>
+                <option value="Selesai">Selesai</option>
+                <option value="Dibatalkan">Dibatalkan</option>
+              </select>
+            </div>
+
+            <div id="orders-list-container" class="space-y-4">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Panel Baru: Laporan Harian, Bulanan & Tahunan -->
+          <div id="panel-reports" class="hidden space-y-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4 mb-4">
+                <div>
+                  <h3 class="font-bold text-base text-slate-900">Laporan Penjualan Toko Bibit</h3>
+                  <p class="text-xs text-slate-500">Rekap transaksi, jumlah kotak terjual, dan omzet berdasarkan periode Harian, Bulanan, atau Tahunan.</p>
+                </div>
+                <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+                  <button type="button" onclick="setReportPeriod('daily')" id="rep-btn-daily" class="px-3 py-1.5 rounded-lg bg-emerald-700 text-white transition">Harian</button>
+                  <button type="button" onclick="setReportPeriod('monthly')" id="rep-btn-monthly" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Bulanan</button>
+                  <button type="button" onclick="setReportPeriod('yearly')" id="rep-btn-yearly" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Tahunan</button>
+                </div>
+              </div>
+
+              <!-- Filter Periode & Status Laporan -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5 text-xs">
+                <div id="rep-filter-daily-wrap">
+                  <label class="block font-semibold text-slate-600 mb-1">Pilih Tanggal (Harian):</label>
+                  <input type="date" id="rep-date-input" onchange="renderReports()" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white focus:outline-none focus:border-emerald-600">
+                </div>
+                <div id="rep-filter-monthly-wrap" class="hidden">
+                  <label class="block font-semibold text-slate-600 mb-1">Pilih Bulan (Bulanan):</label>
+                  <input type="month" id="rep-month-input" onchange="renderReports()" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white focus:outline-none focus:border-emerald-600">
+                </div>
+                <div id="rep-filter-yearly-wrap" class="hidden">
+                  <label class="block font-semibold text-slate-600 mb-1">Pilih Tahun (Tahunan):</label>
+                  <select id="rep-year-input" onchange="renderReports()" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white focus:outline-none focus:border-emerald-600">
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-600 mb-1">Filter Status Transaksi:</label>
+                  <select id="rep-status-filter" onchange="renderReports()" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white focus:outline-none focus:border-emerald-600">
+                    <option value="valid">Semua Kecuali Dibatalkan</option>
+                    <option value="paid">Sudah Dibayar (Diproses/Dikirim/Selesai)</option>
+                    <option value="all">Seluruh Transaksi Masuk</option>
+                  </select>
+                </div>
+
+                <div class="flex items-end">
+                  <button type="button" onclick="exportReportCSV()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2 px-3 rounded-xl transition">
+                    <i class="fa-solid fa-file-csv mr-1.5"></i>Unduh Laporan (CSV)
+                  </button>
+                </div>
+              </div>
+
+              <!-- Ringkasan KPI Laporan -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5">
+                  <span class="text-[11px] font-semibold text-emerald-800">Jumlah Transaksi</span>
+                  <div id="rep-kpi-count" class="text-xl font-bold text-emerald-950 mt-0.5">0 Pesanan</div>
+                </div>
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-3.5">
+                  <span class="text-[11px] font-semibold text-blue-800">Total Bibit Terjual</span>
+                  <div id="rep-kpi-qty" class="text-xl font-bold text-blue-950 mt-0.5">0 Kotak</div>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5">
+                  <span class="text-[11px] font-semibold text-amber-800">Total Omzet Periode</span>
+                  <div id="rep-kpi-revenue" class="text-xl font-bold text-amber-950 mt-0.5">Rp 0</div>
+                </div>
+              </div>
+
+              <!-- Tabel Detail Laporan -->
+              <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase">
+                      <th class="p-3">ID & Tanggal</th>
+                      <th class="p-3">Username & Pembeli</th>
+                      <th class="p-3">Metode</th>
+                      <th class="p-3">Jumlah</th>
+                      <th class="p-3">Status</th>
+                      <th class="p-3 text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="report-table-body" class="divide-y divide-slate-100">
+                    <!-- Rendered via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 2: Kelola Stok Bibit (Update & Hapus) -->
+          <div id="panel-stock" class="hidden space-y-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900">Daftar Inventaris & Stok Bibit (Satuan Kotak)</h3>
+                <p class="text-xs text-slate-500">Gunakan aksi <b>Update</b> untuk mengubah detail/harga/stok, atau <b>Hapus</b> untuk menghapus item bibit.</p>
+              </div>
+              <button onclick="openProductModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold">
+                <i class="fa-solid fa-plus mr-1"></i>Tambah Bibit Baru
+              </button>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase">
+                    <th class="p-3.5">Produk Bibit</th>
+                    <th class="p-3.5">Kategori</th>
+                    <th class="p-3.5">Harga / Kotak</th>
+                    <th class="p-3.5">Sisa Stok</th>
+                    <th class="p-3.5 text-right">Aksi Kelola</th>
+                  </tr>
+                </thead>
+                <tbody id="stock-table-body" class="divide-y divide-slate-100 text-sm">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Panel 3: Kelola Nama Pemilik Toko, Nomor WhatsApp Toko & Pengiriman -->
+          <div id="panel-settings" class="hidden space-y-4">
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                <div>
+                  <h3 class="font-bold text-base text-slate-900">Kelola Nama Pemilik, Nomor WhatsApp Toko & Pengiriman</h3>
+                  <p class="text-xs text-slate-500">Lakukan aksi <b>Update</b> atau <b>Hapus</b> pada data pemilik dan nomor WhatsApp tujuan transaksi.</p>
+                </div>
+                <span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-1 rounded-full">Sinkron Real-Time</span>
+              </div>
+
+              <form onsubmit="handleUpdateStoreSettings(event)" class="space-y-4 text-sm">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Toko Bibit *</label>
+                  <input type="text" id="set-store-name" required class="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Pemilik Toko</label>
+                    <div class="flex gap-2">
+                      <input type="text" id="set-owner-name" placeholder="Nama lengkap pemilik" class="flex-1 px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600">
+                      <button type="button" onclick="clearOwnerName()" title="Hapus Nama Pemilik" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-semibold transition">
+                        <i class="fa-solid fa-trash"></i> Hapus
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nomor WhatsApp Toko (Format 628...)</label>
+                    <div class="flex gap-2">
+                      <input type="tel" id="set-store-wa" placeholder="Contoh: 6281299998888" class="flex-1 px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600">
+                      <button type="button" onclick="clearStoreWa()" title="Hapus Nomor WhatsApp" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-semibold transition">
+                        <i class="fa-solid fa-trash"></i> Hapus
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-4">
+                  <h4 class="font-bold text-xs uppercase text-slate-500 mb-3">Proses Pengiriman: Diantar Armada Toko vs Ambil di Tempat</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-700 mb-1">Minimal Diantar (Kotak)</label>
+                      <input type="number" id="set-min-delivery" required min="1" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600">
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-700 mb-1">Maksimal Diantar (Kotak)</label>
+                      <input type="number" id="set-max-delivery" required min="1" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600">
+                    </div>
+                  </div>
+                  <p class="text-[11px] text-slate-500 mt-1.5">
+                    * Pengantaran berlaku untuk pesanan minimal <b>40 kotak</b> dan maksimal <b>200 kotak</b> (dapat disesuaikan). Pesanan di luar ketentuan tersebut dapat memilih <b>Ambil di Tempat</b>.
+                  </p>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                  <button type="button" onclick="deleteAllStoreIdentity()" class="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition">
+                    <i class="fa-solid fa-trash-can mr-1.5"></i>Hapus Nama Pemilik & WA Toko
+                  </button>
+                  <button type="submit" class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-sm transition">
+                    <i class="fa-solid fa-floppy-disk mr-1.5"></i>Update Profil & Pengiriman
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kolom Kanan (1/3): Live Log Webhook WhatsApp API -->
+        <div class="lg:col-span-1">
+          <div class="bg-slate-900 text-slate-100 rounded-2xl p-4 shadow-lg sticky top-20">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+                <h3 class="font-bold text-sm text-white">WhatsApp API Gateway</h3>
+              </div>
+              <span class="text-[10px] bg-slate-800 text-emerald-400 px-2 py-0.5 rounded font-mono">WEBHOOK ACTIVE</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mb-3">
+              Setiap perubahan status pesanan otomatis mengirimkan pesan notifikasi ke WhatsApp pembeli:
+            </p>
+            <div id="wa-logs-container" class="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+              <!-- Logs rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Tambah / Update Produk Bibit -->
+  <div id="product-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="product-modal-title" class="font-bold text-base text-slate-900">Tambah Bibit Tanaman Baru</h3>
+        <button onclick="closeProductModal()" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="saveProductForm(event)" class="space-y-3 text-sm">
+        <input type="hidden" id="edit-prd-id">
+        <div>
+          <label class="block text-xs font-semibold mb-1">Nama Bibit *</label>
+          <input type="text" id="prd-name" required placeholder="Contoh: Bibit Kelengkeng Merah" class="w-full px-3 py-2 border border-slate-300 rounded-xl">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1">Kategori (Ketik Manual) *</label>
+            <input type="text" id="prd-cat" list="category-suggestions" required placeholder="Contoh: Buah, Hias, Kayu, Rempah..." class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white focus:outline-none focus:border-emerald-600">
+            <datalist id="category-suggestions"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Tinggi / Ukuran *</label>
+            <input type="text" id="prd-height" required placeholder="60 - 80 cm" class="w-full px-3 py-2 border border-slate-300 rounded-xl">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold mb-1">Harga / Kotak (Rp) *</label>
+            <input type="number" id="prd-price" required min="100" placeholder="250000" class="w-full px-3 py-2 border border-slate-300 rounded-xl">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Jumlah Stok (Kotak) *</label>
+            <input type="number" id="prd-stock" required min="0" placeholder="100" class="w-full px-3 py-2 border border-slate-300 rounded-xl">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Upload Gambar Bibit (Manual dari Perangkat)</label>
+          <input type="file" id="prd-image-file" accept="image/*" onchange="handleImageFileUpload(event)" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+          <input type="hidden" id="prd-image-data">
+          <div id="prd-image-preview-wrap" class="mt-2 hidden items-center gap-3 bg-slate-50 p-2 rounded-xl border border-slate-200">
+            <img id="prd-image-preview" src="" alt="Preview Bibit" class="w-14 h-14 object-cover rounded-lg border border-slate-300">
+            <div class="flex-1 min-w-0">
+              <p id="prd-image-status" class="text-[11px] text-slate-600 truncate">Gambar terpilih</p>
+              <button type="button" onclick="clearUploadedImage()" class="text-[11px] text-red-600 hover:underline font-semibold mt-0.5">Hapus Gambar</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Deskripsi Singkat</label>
+          <textarea id="prd-desc" rows="2" placeholder="Keunggulan bibit..." class="w-full px-3 py-2 border border-slate-300 rounded-xl"></textarea>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeProductModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl">Batal</button>
+          <button type="submit" id="product-modal-submit" class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-xl">
+            Simpan Bibit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    function handleLogin(e) {
+      e.preventDefault();
+      sessionStorage.setItem('kn_admin_logged', 'true');
+      checkAuth();
+    }
+
+    function logoutAdmin() {
+      sessionStorage.removeItem('kn_admin_logged');
+      checkAuth();
+    }
+
+    function checkAuth() {
+      const isLogged = sessionStorage.getItem('kn_admin_logged') === 'true';
+      document.getElementById('login-screen').classList.toggle('hidden', isLogged);
+      document.getElementById('admin-app').classList.toggle('hidden', !isLogged);
+      if (isLogged) renderAllAdmin();
+    }
+
+    function switchTab(tab) {
+      document.getElementById('panel-orders').classList.toggle('hidden', tab !== 'orders');
+      document.getElementById('panel-reports').classList.toggle('hidden', tab !== 'reports');
+      document.getElementById('panel-stock').classList.toggle('hidden', tab !== 'stock');
+      document.getElementById('panel-settings').classList.toggle('hidden', tab !== 'settings');
+
+      const tabs = ['orders', 'reports', 'stock', 'settings'];
+      tabs.forEach(t => {
+        const btn = document.getElementById('tab-btn-' + t);
+        btn.className = t === tab
+          ? 'bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition'
+          : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-sm font-semibold transition';
+      });
+
+      if (tab === 'settings') loadSettingsForm();
+      if (tab === 'reports') renderReports();
+    }
+
+
+    // --- LAPORAN HARIAN, BULANAN & TAHUNAN ---
+    let currentReportPeriod = 'daily';
+
+    function initReportInputs() {
+      const today = getTodayISO();
+      const dateInput = document.getElementById('rep-date-input');
+      const monthInput = document.getElementById('rep-month-input');
+      const yearInput = document.getElementById('rep-year-input');
+      if (dateInput && !dateInput.value) dateInput.value = today;
+      if (monthInput && !monthInput.value) monthInput.value = today.slice(0, 7);
+      if (yearInput) yearInput.value = today.slice(0, 4);
+    }
+
+    function setReportPeriod(period) {
+      currentReportPeriod = period;
+      ['daily', 'monthly', 'yearly'].forEach(p => {
+        const btn = document.getElementById('rep-btn-' + p);
+        const wrap = document.getElementById('rep-filter-' + p + '-wrap');
+        btn.className = p === period
+          ? 'px-3 py-1.5 rounded-lg bg-emerald-700 text-white transition'
+          : 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
+        wrap.classList.toggle('hidden', p !== period);
+      });
+      renderReports();
+    }
+
+    function getFilteredReportOrders() {
+      initReportInputs();
+      const orders = getOrders();
+      const statusMode = document.getElementById('rep-status-filter').value;
+      const targetDate = document.getElementById('rep-date-input').value;
+      const targetMonth = document.getElementById('rep-month-input').value;
+      const targetYear = document.getElementById('rep-year-input').value;
+
+      return orders.filter(o => {
+        const oDate = o.orderDate || getTodayISO();
+        let matchPeriod = true;
+        if (currentReportPeriod === 'daily') {
+          matchPeriod = oDate === targetDate;
+        } else if (currentReportPeriod === 'monthly') {
+          matchPeriod = oDate.startsWith(targetMonth);
+        } else if (currentReportPeriod === 'yearly') {
+          matchPeriod = oDate.startsWith(targetYear);
+        }
+
+        let matchStatus = true;
+        if (statusMode === 'valid') {
+          matchStatus = o.status !== 'Dibatalkan';
+        } else if (statusMode === 'paid') {
+          matchStatus = ['Diproses', 'Dikirim', 'Selesai'].includes(o.status);
+        }
+
+        return matchPeriod && matchStatus;
+      });
+    }
+
+    function renderReports() {
+      const filtered = getFilteredReportOrders();
+      const totalOrders = filtered.length;
+      const totalQty = filtered.reduce((sum, o) => sum + (o.totalQty || 0), 0);
+      const totalRev = filtered.reduce((sum, o) => sum + (o.total || 0), 0);
+
+      document.getElementById('rep-kpi-count').textContent = `${formatNumber(totalOrders)} Pesanan`;
+      document.getElementById('rep-kpi-qty').textContent = `${formatNumber(totalQty)} Kotak`;
+      document.getElementById('rep-kpi-revenue').textContent = formatRupiah(totalRev);
+
+      const tbody = document.getElementById('report-table-body');
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">Tidak ada data transaksi pada periode yang dipilih.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(o => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-3">
+            <div class="font-bold text-slate-900">#${o.id}</div>
+            <div class="text-[11px] text-slate-400">${o.orderDate || '-'} (${o.createdAt})</div>
+          </td>
+          <td class="p-3">
+            <div class="font-semibold text-emerald-800">${o.buyerUsername ? '@' + o.buyerUsername : '-'}</div>
+            <div class="text-[11px] text-slate-600">${o.customerName}</div>
+          </td>
+          <td class="p-3 text-slate-600">${o.deliveryMethod || o.courier}</td>
+          <td class="p-3 font-semibold">${formatNumber(o.totalQty || 0)} kotak</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 font-semibold text-[11px]">${o.status}</span></td>
+          <td class="p-3 text-right font-bold text-emerald-800">${formatRupiah(o.total)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function exportReportCSV() {
+      const filtered = getFilteredReportOrders();
+      if (filtered.length === 0) {
+        alert('Tidak ada data laporan pada periode ini untuk diunduh.');
+        return;
+      }
+      const headers = ['ID_Pesanan', 'Tanggal', 'Username', 'Nama_Pembeli', 'Metode_Pengiriman', 'Jumlah_Kotak', 'Status', 'Total_Rp'];
+      const rows = filtered.map(o => [
+        o.id,
+        o.orderDate || '',
+        o.buyerUsername || '',
+        `"${(o.customerName || '').replace(/"/g, '""')}"`,
+        `"${(o.deliveryMethod || o.courier || '').replace(/"/g, '""')}"`,
+        o.totalQty || 0,
+        o.status,
+        o.total || 0
+      ]);
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `laporan-penjualan-${currentReportPeriod}-${getTodayISO()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function renderAllAdmin() {
+      renderTopbarSettings();
+      renderStats();
+      renderOrders();
+      renderStockTable();
+      renderWaLogs();
+      loadSettingsForm();
+      renderReports();
+    }
+
+    function renderTopbarSettings() {
+      const s = getSettings();
+      document.getElementById('topbar-store-name').textContent = s.storeName;
+      document.getElementById('topbar-owner-name').textContent = s.ownerName || '(Kosong)';
+      document.getElementById('topbar-store-wa').textContent = s.storeWa ? '+' + s.storeWa : '(Kosong)';
+    }
+
+    // --- KELOLA PROFIL PEMILIK & WA TOKO (UPDATE & HAPUS) ---
+    function loadSettingsForm() {
+      const s = getSettings();
+      document.getElementById('set-store-name').value = s.storeName || '';
+      document.getElementById('set-owner-name').value = s.ownerName || '';
+      document.getElementById('set-store-wa').value = s.storeWa || '';
+      document.getElementById('set-min-delivery').value = s.minDeliveryQty || 40;
+      document.getElementById('set-max-delivery').value = s.maxDeliveryQty || 200;
+    }
+
+    function handleUpdateStoreSettings(e) {
+      e.preventDefault();
+      const minQ = Number(document.getElementById('set-min-delivery').value);
+      const maxQ = Number(document.getElementById('set-max-delivery').value);
+      if (minQ > maxQ) {
+        alert('Minimal pengantaran tidak boleh lebih besar dari maksimal pengantaran.');
+        return;
+      }
+
+      const rawWa = document.getElementById('set-store-wa').value.trim();
+      const updated = {
+        storeName: document.getElementById('set-store-name').value.trim() || 'Kebun Nusantara',
+        ownerName: document.getElementById('set-owner-name').value.trim(),
+        storeWa: rawWa ? normalizePhone(rawWa) : '',
+        minDeliveryQty: minQ,
+        maxDeliveryQty: maxQ
+      };
+
+      saveSettings(updated);
+      renderTopbarSettings();
+      alert('Profil pemilik, nomor WhatsApp toko, dan aturan pengiriman berhasil diperbarui!');
+    }
+
+    function clearOwnerName() {
+      if (!confirm('Hapus nama pemilik toko?')) return;
+      const s = getSettings();
+      s.ownerName = '';
+      saveSettings(s);
+      loadSettingsForm();
+      renderTopbarSettings();
+    }
+
+    function clearStoreWa() {
+      if (!confirm('Hapus nomor WhatsApp toko?')) return;
+      const s = getSettings();
+      s.storeWa = '';
+      saveSettings(s);
+      loadSettingsForm();
+      renderTopbarSettings();
+    }
+
+    function deleteAllStoreIdentity() {
+      if (!confirm('Hapus sekaligus Nama Pemilik Toko dan Nomor WhatsApp Toko?')) return;
+      const s = getSettings();
+      s.ownerName = '';
+      s.storeWa = '';
+      saveSettings(s);
+      loadSettingsForm();
+      renderTopbarSettings();
+      alert('Data Nama Pemilik dan Nomor WhatsApp toko telah dihapus.');
+    }
+
+    // --- STATISTIK & PESANAN ---
+    function renderStats() {
+      const orders = getOrders();
+      const logs = getWaLogs();
+      const pending = orders.filter(o => o.status === 'Menunggu Pembayaran').length;
+      const revenue = orders
+        .filter(o => o.status !== 'Menunggu Pembayaran' && o.status !== 'Dibatalkan')
+        .reduce((sum, o) => sum + o.total, 0);
+
+      document.getElementById('stat-orders').textContent = orders.length;
+      document.getElementById('stat-pending').textContent = pending;
+      document.getElementById('stat-revenue').textContent = formatRupiah(revenue);
+      document.getElementById('stat-wa').textContent = logs.length;
+    }
+
+    function renderOrders() {
+      const allOrders = getOrders();
+      const searchUser = (document.getElementById('admin-search-username')?.value || '').trim().toLowerCase().replace(/^@/, '');
+      const statusFilter = document.getElementById('admin-filter-status')?.value || 'Semua';
+      const container = document.getElementById('orders-list-container');
+
+      const orders = allOrders.filter(o => {
+        const uname = (o.buyerUsername || '').toLowerCase();
+        const matchUser = !searchUser || uname.includes(searchUser);
+        const matchStatus = statusFilter === 'Semua' || o.status === statusFilter;
+        return matchUser && matchStatus;
+      });
+
+      if (orders.length === 0) {
+        container.innerHTML = `<div class="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 text-sm">Tidak ada pesanan yang cocok dengan pencarian username <b>${searchUser ? '@' + searchUser : ''}</b>.</div>`;
+        return;
+      }
+
+      container.innerHTML = orders.map(order => {
+        let badgeColor = 'bg-amber-100 text-amber-800';
+        if (order.status === 'Diproses') badgeColor = 'bg-blue-100 text-blue-800';
+        if (order.status === 'Dikirim') badgeColor = 'bg-emerald-100 text-emerald-800';
+        if (order.status === 'Selesai') badgeColor = 'bg-slate-200 text-slate-800';
+        if (order.status === 'Dibatalkan') badgeColor = 'bg-red-100 text-red-800';
+
+        const itemsHtml = order.items.map(i => `<li>${i.name} <b>(${formatNumber(i.qty)} kotak)</b> - ${formatRupiah(i.price * i.qty)}</li>`).join('');
+        const methodLabel = order.deliveryMethod || order.courier || 'Diantar Armada Toko';
+
+        return `
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <div class="flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 pb-3 mb-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-base text-slate-900">#${order.id}</span>
+                  <span class="bg-slate-100 text-slate-700 text-[11px] font-semibold px-2 py-0.5 rounded">${methodLabel}</span>
+                  <span class="text-[11px] text-slate-400">${order.createdAt}</span>
+                </div>
+                <p class="text-xs text-slate-600 mt-1">
+                  <b>${order.customerName}</b> ${order.buyerUsername ? `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded text-[10px] font-semibold">@${order.buyerUsername}</span>` : ''} • <a href="https://wa.me/${order.phone}" target="_blank" class="text-green-600 hover:underline"><i class="fa-brands fa-whatsapp"></i> ${order.phone}</a>
+                </p>
+              </div>
+              <span class="px-3 py-1 rounded-full text-xs font-bold ${badgeColor}">${order.status}</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs mb-4">
+              <div>
+                <span class="text-slate-400 block mb-1">Rincian Bibit (${formatNumber(order.totalQty || 0)} Kotak):</span>
+                <ul class="list-disc list-inside space-y-1 text-slate-700">${itemsHtml}</ul>
+                <div class="mt-2 font-bold text-emerald-800 text-sm">Total: ${formatRupiah(order.total)}</div>
+              </div>
+              <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <span class="text-slate-400 block mb-1">Lokasi / Metode (${methodLabel}):</span>
+                <p class="text-slate-700 mb-2">${order.address}</p>
+                <div class="flex items-center gap-2">
+                  <input type="text" id="resi-${order.id}" value="${order.resi || ''}" placeholder="No. Surat Jalan / Plat Armada..." class="flex-1 px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs bg-white">
+                  <button onclick="saveResi('${order.id}')" class="bg-slate-800 hover:bg-slate-900 text-white px-2.5 py-1.5 rounded-lg text-xs font-medium">Simpan</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100">
+              <span class="text-[11px] text-slate-500">
+                <i class="fa-solid fa-boxes-stacked text-emerald-600 mr-1"></i>Stok katalog tetap (dikelola manual)
+              </span>
+              <div class="flex flex-wrap items-center gap-2">
+                <label class="text-xs font-semibold text-slate-600">Ubah Status:</label>
+                <select onchange="updateOrderStatus('${order.id}', this.value)" class="px-3 py-1.5 border border-slate-300 rounded-xl text-xs font-semibold bg-white focus:outline-none focus:border-emerald-600">
+                  <option value="Menunggu Pembayaran" ${order.status === 'Menunggu Pembayaran' ? 'selected' : ''}>Menunggu Pembayaran</option>
+                  <option value="Diproses" ${order.status === 'Diproses' ? 'selected' : ''}>Pembayaran Diterima (Diproses)</option>
+                  <option value="Dikirim" ${order.status === 'Dikirim' ? 'selected' : ''}>Dikirim / Siap Diambil</option>
+                  <option value="Selesai" ${order.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
+                  <option value="Dibatalkan" ${order.status === 'Dibatalkan' ? 'selected' : ''}>Dibatalkan</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function saveResi(orderId) {
+      const resiVal = document.getElementById('resi-' + orderId).value.trim();
+      const orders = getOrders();
+      const order = orders.find(o => o.id === orderId);
+      if (order) {
+        order.resi = resiVal;
+        saveOrders(orders);
+        alert('Nomor surat jalan / resi berhasil disimpan untuk #' + orderId);
+      }
+    }
+
+    function updateOrderStatus(orderId, newStatus) {
+      const orders = getOrders();
+      const order = orders.find(o => o.id === orderId);
+      if (!order || order.status === newStatus) return;
+
+      const resiInput = document.getElementById('resi-' + orderId);
+      if (resiInput && resiInput.value.trim()) {
+        order.resi = resiInput.value.trim();
+      }
+
+      // Jumlah stok tetap (tidak berkurang otomatis setelah pembelian/perubahan status)
+
+      order.status = newStatus;
+      saveOrders(orders);
+      triggerAutoWhatsApp(order, newStatus);
+      renderAllAdmin();
+    }
+
+    function triggerAutoWhatsApp(order, status) {
+      const s = getSettings();
+      const methodLabel = order.deliveryMethod || 'Diantar Armada Toko';
+      let message = '';
+
+      if (status === 'Diproses') {
+        message = `Halo Kak ${order.customerName}, pembayaran pesanan #${order.id} (${formatNumber(order.totalQty || 0)} kotak) sebesar ${formatRupiah(order.total)} telah diterima oleh ${s.storeName}. Tim kami sedang menyiapkan bibit Anda.`;
+      } else if (status === 'Dikirim') {
+        if (methodLabel === 'Ambil di Tempat') {
+          message = `Halo Kak ${order.customerName}! Bibit pesanan #${order.id} (${formatNumber(order.totalQty || 0)} kotak) sudah siap dan dapat langsung diambil di kebun ${s.storeName}.`;
+        } else {
+          const resiInfo = order.resi ? ` (No. Surat Jalan/Armada: ${order.resi})` : '';
+          message = `Kabar baik Kak ${order.customerName}! Bibit pesanan #${order.id} (${formatNumber(order.totalQty || 0)} kotak) sedang diantar armada ${s.storeName} menuju lokasi Anda${resiInfo}.`;
+        }
+      } else if (status === 'Selesai') {
+        message = `Terima kasih Kak ${order.customerName}, pesanan #${order.id} di ${s.storeName} telah selesai. Semoga bibit tanamannya tumbuh subur!`;
+      } else if (status === 'Dibatalkan') {
+        message = `Halo Kak ${order.customerName}, pesanan #${order.id} di ${s.storeName} telah dibatalkan.`;
+      } else {
+        return;
+      }
+
+      const logs = getWaLogs();
+      const now = new Date();
+      logs.unshift({
+        time: now.toTimeString().slice(0,5),
+        orderId: order.id,
+        to: `${order.phone} (${order.customerName})`,
+        status: status,
+        message: message
+      });
+      saveWaLogs(logs);
+    }
+
+    function renderWaLogs() {
+      const logs = getWaLogs();
+      const container = document.getElementById('wa-logs-container');
+      container.innerHTML = logs.map(log => `
+        <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-3 text-xs">
+          <div class="flex justify-between items-center text-[11px] text-emerald-400 font-semibold mb-1">
+            <span><i class="fa-brands fa-whatsapp mr-1"></i>Ke: ${log.to}</span>
+            <span class="text-slate-400">${log.time}</span>
+          </div>
+          <div class="text-[10px] text-amber-300 mb-1.5">Trigger Status: <b>${log.status}</b> (#${log.orderId})</div>
+          <p class="text-slate-200 bg-slate-900/80 p-2.5 rounded-lg leading-relaxed border border-slate-700/70">"${log.message}"</p>
+        </div>
+      `).join('');
+    }
+
+    // --- KELOLA STOK BIBIT (CREATE, UPDATE & DELETE) ---
+    function renderStockTable() {
+      const products = getProducts();
+      const tbody = document.getElementById('stock-table-body');
+
+      if (products.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 text-xs">Belum ada data bibit tanaman. Klik "Tambah Bibit Baru".</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = products.map(p => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-3.5">
+            <div class="font-bold text-slate-900">${p.name}</div>
+            <div class="text-xs text-slate-400">${p.height}</div>
+          </td>
+          <td class="p-3.5"><span class="bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs font-medium">${p.category}</span></td>
+          <td class="p-3.5 font-semibold text-emerald-800">${formatRupiah(p.price)}</td>
+          <td class="p-3.5">
+            <span class="font-bold ${p.stock < 40 ? 'text-amber-600' : 'text-slate-800'}">${formatNumber(p.stock)} kotak</span>
+          </td>
+          <td class="p-3.5 text-right">
+            <div class="inline-flex items-center gap-1.5">
+              <button onclick="openProductModal('${p.id}')" class="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold transition">
+                <i class="fa-solid fa-pen-to-square mr-1"></i>Update
+              </button>
+              <button onclick="deleteProduct('${p.id}')" class="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-xs font-semibold transition">
+                <i class="fa-solid fa-trash mr-1"></i>Hapus
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openProductModal(productId = null) {
+      const modal = document.getElementById('product-modal');
+      const titleEl = document.getElementById('product-modal-title');
+      const submitEl = document.getElementById('product-modal-submit');
+      const idInput = document.getElementById('edit-prd-id');
+      const products = getProducts();
+
+      const datalist = document.getElementById('category-suggestions');
+      if (datalist) {
+        const existingCats = [...new Set(products.map(p => (p.category || '').trim()).filter(Boolean))];
+        datalist.innerHTML = existingCats.map(c => `<option value="${c}">`).join('');
+      }
+
+      const fileInput = document.getElementById('prd-image-file');
+      if (fileInput) fileInput.value = '';
+
+      if (productId) {
+        const prd = products.find(p => p.id === productId);
+        if (!prd) return;
+
+        titleEl.textContent = 'Update Data & Stok Bibit';
+        submitEl.textContent = 'Update Bibit';
+        idInput.value = prd.id;
+        document.getElementById('prd-name').value = prd.name;
+        document.getElementById('prd-cat').value = prd.category;
+        document.getElementById('prd-height').value = prd.height;
+        document.getElementById('prd-price').value = prd.price;
+        document.getElementById('prd-stock').value = prd.stock;
+        document.getElementById('prd-desc').value = prd.desc || '';
+        setImagePreview(prd.image || '', 'Gambar bibit saat ini (upload file baru untuk mengganti)');
+      } else {
+        titleEl.textContent = 'Tambah Bibit Tanaman Baru';
+        submitEl.textContent = 'Simpan ke Katalog';
+        idInput.value = '';
+        document.getElementById('prd-name').value = '';
+        document.getElementById('prd-cat').value = '';
+        document.getElementById('prd-height').value = '';
+        document.getElementById('prd-price').value = '';
+        document.getElementById('prd-stock').value = '';
+        document.getElementById('prd-desc').value = '';
+        setImagePreview('', '');
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeProductModal() {
+      const modal = document.getElementById('product-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+
+    function setImagePreview(dataUrl, statusText) {
+      const hiddenInput = document.getElementById('prd-image-data');
+      const wrap = document.getElementById('prd-image-preview-wrap');
+      const img = document.getElementById('prd-image-preview');
+      const status = document.getElementById('prd-image-status');
+
+      hiddenInput.value = dataUrl || '';
+      if (dataUrl) {
+        img.src = dataUrl;
+        status.textContent = statusText || 'Gambar siap disimpan';
+        wrap.classList.remove('hidden');
+        wrap.classList.add('flex');
+      } else {
+        img.src = '';
+        status.textContent = '';
+        wrap.classList.add('hidden');
+        wrap.classList.remove('flex');
+      }
+    }
+
+    function clearUploadedImage() {
+      const fileInput = document.getElementById('prd-image-file');
+      if (fileInput) fileInput.value = '';
+      setImagePreview('', '');
+    }
+
+    function handleImageFileUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) {
+        alert('Silakan pilih file gambar yang valid (JPG, PNG, WEBP, dll).');
+        event.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const rawDataUrl = e.target.result;
+        const img = new Image();
+        img.onload = function() {
+          const maxDim = 800;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedUrl = canvas.toDataURL('image/jpeg', 0.82);
+          setImagePreview(compressedUrl, `${file.name} (diupload manual)`);
+        };
+        img.src = rawDataUrl;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveProductForm(e) {
+      e.preventDefault();
+      const products = getProducts();
+      const editId = document.getElementById('edit-prd-id').value;
+      const imageVal = document.getElementById('prd-image-data').value.trim() || 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=600&q=80';
+
+      if (editId) {
+        const idx = products.findIndex(p => p.id === editId);
+        if (idx !== -1) {
+          products[idx] = {
+            ...products[idx],
+            name: document.getElementById('prd-name').value.trim(),
+            category: document.getElementById('prd-cat').value.trim(),
+            height: document.getElementById('prd-height').value.trim(),
+            price: Number(document.getElementById('prd-price').value),
+            stock: Number(document.getElementById('prd-stock').value),
+            image: imageVal,
+            desc: document.getElementById('prd-desc').value.trim() || 'Bibit tanaman unggul siap tanam.'
+          };
+        }
+      } else {
+        const newPrd = {
+          id: 'PRD-' + Date.now().toString().slice(-4),
+          name: document.getElementById('prd-name').value.trim(),
+          category: document.getElementById('prd-cat').value.trim(),
+          height: document.getElementById('prd-height').value.trim(),
+          price: Number(document.getElementById('prd-price').value),
+          stock: Number(document.getElementById('prd-stock').value),
+          image: imageVal,
+          desc: document.getElementById('prd-desc').value.trim() || 'Bibit tanaman unggul siap tanam.'
+        };
+        products.push(newPrd);
+      }
+
+      saveProducts(products);
+      closeProductModal();
+      renderStockTable();
+    }
+
+    function deleteProduct(productId) {
+      const products = getProducts();
+      const prd = products.find(p => p.id === productId);
+      if (!prd) return;
+
+      if (!confirm(`Yakin ingin menghapus "${prd.name}" dari daftar stok bibit?`)) return;
+
+      const updated = products.filter(p => p.id !== productId);
+      saveProducts(updated);
+      renderStockTable();
+    }
+
+    window.addEventListener('storage', () => {
+      if (sessionStorage.getItem('kn_admin_logged') === 'true') {
+        renderAllAdmin();
+      }
+    });
+
+    initStore();
+    checkAuth();
+  </script>
+</body>
+</html>
